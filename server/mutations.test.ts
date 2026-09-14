@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { applyPatch, mutateRandomNode, startMutationLoop } from './mutations';
+import { applyPatch, mutateRandomNode, startMutationLoop, type Patch } from './mutations';
 import type { OrgNode } from './org-data';
 
 function makeNode(overrides: Partial<OrgNode> = {}): OrgNode {
@@ -103,7 +103,7 @@ describe('startMutationLoop', () => {
   it('генерирует патчи по расписанию и останавливается по stop()', () => {
     vi.useFakeTimers();
     const nodes = [makeNode(), makeNode({ id: 'n-2', parentId: 'n-1' })];
-    const onPatch = vi.fn();
+    const onPatch = vi.fn<(patch: Patch) => void>();
     // rng = () => 0.3 → интервал 2000 + 0.3 * 4000 = 3200 мс
     const stop = startMutationLoop({ nodes, onPatch, rng: () => 0.3 });
 

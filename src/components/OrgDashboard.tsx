@@ -90,6 +90,7 @@ function DashboardBody({ lastPatch }: { lastPatch: AppliedPatch | null }) {
   // Выделение из таблицы: раскрываем цепочку предков, чтобы узел был виден.
   useEffect(() => {
     if (!forest || !selectedId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- намеренная синхронизация с приходом выделения («adjust state on prop change»)
     setExpanded((prev) => {
       const next = new Set(prev);
       let cursor: string | null = forest.parentOf.get(selectedId) ?? null;

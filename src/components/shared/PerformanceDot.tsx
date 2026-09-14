@@ -2,7 +2,7 @@ import styled, { useTheme } from 'styled-components';
 import type { DefaultTheme } from 'styled-components';
 
 /** Цветовой индикатор эффективности: ≥ 80 зелёный, 50–79 жёлтый, < 50 красный. */
-export function performanceColor(value: number, theme: DefaultTheme): string {
+function performanceColor(value: number, theme: DefaultTheme): string {
   if (value >= 80) return theme.colors.performance.good;
   if (value >= 50) return theme.colors.performance.mid;
   return theme.colors.performance.bad;

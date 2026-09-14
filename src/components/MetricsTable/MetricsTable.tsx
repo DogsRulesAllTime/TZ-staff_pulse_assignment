@@ -39,7 +39,7 @@ export interface MetricsTableProps {
 
 const LEVEL_LABELS = ['Дивизион', 'Отдел', 'Команда'] as const;
 
-export function levelLabel(depth: number): string {
+function levelLabel(depth: number): string {
   return LEVEL_LABELS[depth] ?? `Уровень ${depth}`;
 }
 

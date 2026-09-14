@@ -75,9 +75,11 @@ export function useCellFlash(
         }, durationMs),
       );
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- состояние вспышек синхронизируется с приходом SSE-патча; useState+effect — осознанный выбор (см. докблок хука)
     setFlashCounts(next);
     // Намеренно без cleanup: см. комментарий к хуку — таймеры переживают
     // смену deps, иначе патчи отменяли бы вспышки друг друга.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- flashCounts читается только как затравка next; включать в deps нельзя (бесконечный цикл), актуальность обеспечивают [seq, changedCells]
   }, [seq, changedCells, durationMs]);
 
   useEffect(() => {

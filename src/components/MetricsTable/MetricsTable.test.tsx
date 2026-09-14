@@ -222,7 +222,7 @@ describe('MetricsTable keyboard navigation', () => {
   });
 
   function rowOf(name: string): HTMLTableRowElement {
-    return screen.getByRole('row', { name }) as HTMLTableRowElement;
+    return screen.getByRole('row', { name });
   }
 
   /** jsdom не реализует scrollIntoView — ставим шпион вместо отсутствующего метода. */
