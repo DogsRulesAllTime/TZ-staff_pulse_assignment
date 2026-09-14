@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { orgNodeSchema, orgTreeSchema, validateForest, type OrgNode } from './schema'
+import { orgNodeSchema, orgTreeSchema, type OrgNode } from './schema'
 
 const validNode = {
   id: 'node-1',
@@ -58,21 +58,5 @@ describe('orgTreeSchema', () => {
 
   it('rejects when any node is invalid', () => {
     expect(() => orgTreeSchema.parse([validNode, { ...validNode, budget: -5 }])).toThrow()
-  })
-})
-
-describe('validateForest', () => {
-  it('accepts a forest with valid parentId references', () => {
-    const tree: OrgNode[] = [
-      validNode,
-      { ...validNode, id: 'node-2', parentId: 'node-1' },
-      { ...validNode, id: 'node-3', parentId: null },
-    ]
-    expect(() => validateForest(tree)).not.toThrow()
-  })
-
-  it('rejects a parentId referencing a missing node', () => {
-    const tree: OrgNode[] = [{ ...validNode, parentId: 'ghost' }]
-    expect(() => validateForest(tree)).toThrow(/parentId/)
   })
 })

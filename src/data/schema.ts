@@ -14,18 +14,3 @@ export const orgNodeSchema = z.object({
 export const orgTreeSchema = z.array(orgNodeSchema)
 
 export type OrgNode = z.infer<typeof orgNodeSchema>
-
-/**
- * Forest-level validation: every parentId must reference an existing node id
- * (or be null for roots). Runs on the already schema-validated tree.
- */
-export function validateForest(nodes: readonly OrgNode[]): void {
-  const ids = new Set(nodes.map((node) => node.id))
-  for (const node of nodes) {
-    if (node.parentId !== null && !ids.has(node.parentId)) {
-      throw new Error(
-        `invalid parentId "${node.parentId}" on node "${node.id}": referenced node does not exist`,
-      )
-    }
-  }
-}

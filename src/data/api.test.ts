@@ -29,6 +29,8 @@ describe('fetchOrgTree', () => {
     const tree = await fetchOrgTree()
 
     expect(tree).toHaveLength(2)
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(init.signal).toBeDefined()
     expect(fetchMock).toHaveBeenCalledWith('/api/org-tree', {
       signal: expect.any(AbortSignal),
     })
