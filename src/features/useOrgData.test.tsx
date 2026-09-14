@@ -106,6 +106,38 @@ describe('useOrgData', () => {
     expect(result.current.forest).toBe(forest)
   })
 
+  it('maps a payload with a dangling parentId to status "error" instead of crashing', () => {
+    vi.mocked(useOrgTreeQuery).mockReturnValue({
+      status: 'success',
+      fetchStatus: 'idle',
+      isPending: false,
+      isError: false,
+      data: [node({ id: 'div-1' }), node({ id: 'orphan', parentId: 'missing' })],
+      refetch: vi.fn(),
+    } as never)
+
+    const { result } = renderHook(() => useOrgData())
+
+    expect(result.current.status).toBe('error')
+    expect(result.current.forest).toBeUndefined()
+  })
+
+  it('maps a cyclic payload to status "error" instead of crashing', () => {
+    vi.mocked(useOrgTreeQuery).mockReturnValue({
+      status: 'success',
+      fetchStatus: 'idle',
+      isPending: false,
+      isError: false,
+      data: [node({ id: 'a', parentId: 'b' }), node({ id: 'b', parentId: 'a' })],
+      refetch: vi.fn(),
+    } as never)
+
+    const { result } = renderHook(() => useOrgData())
+
+    expect(result.current.status).toBe('error')
+    expect(result.current.forest).toBeUndefined()
+  })
+
   it('exposes the query refetch', () => {
     const refetch = vi.fn()
     vi.mocked(useOrgTreeQuery).mockReturnValue({

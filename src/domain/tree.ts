@@ -25,7 +25,12 @@ export interface Forest {
   parentOf: Map<string, string | null>
 }
 
-/** Invalid payload structure (dangling references, cycles) — maps to the UI Error state. */
+/**
+ * Invalid payload structure (dangling parentId, cycle, duplicate id).
+ * Contract: this error is never rendered raw — `useOrgData` (src/features)
+ * catches it around the memoized `buildForest` call and maps it onto the UI
+ * error state (`ErrorState`, whose «Повторить» button triggers refetch).
+ */
 export class DataError extends Error {
   constructor(message: string, options?: { cause?: unknown }) {
     super(message, { cause: options?.cause })
