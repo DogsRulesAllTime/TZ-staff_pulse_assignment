@@ -35,7 +35,9 @@ pnpm check:size    # бюджет бандла ≤ 200 КБ gzip
 
 ### Разработка: линт и формат
 
-`pnpm lint` / `pnpm lint:fix` — ESLint 9 (flat, type-checked для `src/**` и `server/**`), `pnpm format` / `pnpm format:check` — Prettier (100 колонок, одинарные кавычки). Pre-commit хуск автоматически прогоняет `lint-staged` (eslint --fix + prettier --write) по staged-файлам при каждом коммите. Линт тайп-чекает через TS 6 side-by-side, пока typescript-eslint не поддержит TS 7 (см. `.pnpmfile.cjs`).
+`pnpm lint` / `pnpm lint:fix` — **Oxlint** (Rust, конфиг `.oxlintrc.json`), `pnpm format` / `pnpm format:check` — **Oxfmt** (конфиг `.oxfmtrc.json`: 100 колонок, одинарные кавычки). Pre-commit хуск автоматически прогоняет `lint-staged` (oxlint --fix + oxfmt) по staged-файлам при каждом коммите.
+
+Почему Oxlint + Oxfmt, а не ESLint + Prettier: оба инструмента написаны на Rust — линт репо идёт за сотни миллисекунд; type-aware правила (no-floating-promises, no-misused-promises, no-unsafe-\* и т.д.) выполняет tsgolint поверх typescript-go (**TS7 native**), то есть тот же тулчейн, что и `tsc` в репо — никакой side-by-side пин TS 6 (бывший `.pnpmfile.cjs`) не нужен. Подавления — только узкие inline-комментарии `oxlint-disable-next-line` с причиной.
 
 ## Структура документации
 

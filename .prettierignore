@@ -1,6 +1,0 @@
-dist
-node_modules
-pnpm-lock.yaml
-coverage
-# SDD-бухгалтерия планов/брифов — реформат мешает ревью планов
-.superpowers
