@@ -54,7 +54,7 @@ pnpm check:size    # бюджет бандла ≤ 200 КБ gzip
 
 ## Карта этапов
 
-- [ ] **step/1 FOUNDATION** — scaffold, mock API, валидация, кэш (stale 5s), дерево, состояния
+- [ ] **step/1 FOUNDATION** — ✅ scaffold, mock API, валидация, кэш (stale 5s), дерево, состояния
 - [ ] **step/2 CORE** — таблица агрегатов, сортировка, фильтр 250мс, связь таблица↔дерево
 - [ ] **step/3 POLISH** — SSE-патчи, fade-out ячеек, инкрементальная агрегация, backoff, keyboard nav
 - [ ] **step/4 BONUS** — Docker, Nginx, бюджет бандла, AI-поиск (NL → структурированный фильтр)
