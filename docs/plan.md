@@ -25,7 +25,7 @@
 - Абсолютные импорты через алиас `@/` → `src/`.
 - ≥ 40 узлов, ≥ 3 уровней в mock-данных.
 - После каждого коммита — запись в `docs/PROGRESS.md`.
-- Код проходит `pnpm lint` (ESLint 9 flat + typescript-eslint) и `pnpm format:check` (Prettier) — 0 ошибок/0 предупреждений; pre-commit hook (husky + lint-staged) прогоняет их на staged-файлах.
+- Код проходит `pnpm lint` (Oxlint, type-aware через tsgo/TS7) и `pnpm format:check` (Oxfmt) — 0 ошибок/0 предупреждений; pre-commit hook (husky + lint-staged) прогоняет их на staged-файлах.
 
 ---
 
@@ -230,23 +230,28 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 
 ## Этап 04 — BONUS (тег `step/4`)
 
-### Task 10: Качество кода — ESLint 9 (flat) + Prettier + pre-commit
+### Task 10: Качество кода — Oxlint + Oxfmt (Rust-стек) + pre-commit
+
+> **Ruling (пересмотр):** исходно задача писалась под ESLint 9 + Prettier + typescript-eslint.
+> Пользователь потребовал современные быстрые инструменты; актуализация 2026: выбраны
+> **Oxlint (type-aware через tsgo/TS7 native)** + **Oxfmt**. Бонус: убирает `.pnpmfile.cjs`
+> хак с TS6-пином, который потребовался бы typescript-eslint на TS 7. Доки: oxc.rs
+> (guide/usage/linter, guide/usage/formatter, migrate-from-eslint, migrate-from-prettier).
 
 **Files:**
-
-- Create: `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, `.husky/pre-commit`, `.lintstagedrc.json`
+- Create: `.oxlintrc.json`, `.oxfmttrc`/конфиг oxfmt (по докам), `.husky/pre-commit`, `.lintstagedrc.json`
+- Remove: `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, eslint/prettier/typescript-eslint депы, `.pnpmfile.cjs`
 - Modify: `package.json` (scripts: `lint`, `lint:fix`, `format`, `format:check`; devDeps)
 
 **Interfaces:**
+- Produces: `pnpm lint` (0 warnings policy), `pnpm format:check`; pre-commit hook прогоняет lint-staged (oxlint --fix + oxfmt) на staged-файлах.
 
-- Produces: `pnpm lint` (0 warnings policy), `pnpm format:check`; pre-commit hook прогоняет lint-staged (eslint --fix + prettier --write) на staged-файлах.
-
-- [ ] **Step 1:** Установить: `eslint@9`, `typescript-eslint` (плоский конфиг), `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, `eslint-plugin-import` (опционально), `prettier`, `husky`, `lint-staged`.
-- [ ] **Step 2:** `eslint.config.js` — flat config: typescript-eslint recommended-type-checked для `src/**` и `server/**`, react-hooks/recommended, react-refresh, игнор `dist/`, `node_modules/`, `pnpm-lock.yaml`; правило `@typescript-eslint/no-unused-vars` с `argsIgnorePattern: '^_'`; `no-console: ['warn', { allow: ['warn', 'error'] }]`.
-- [ ] **Step 3:** `.prettierrc.json`: `{ "printWidth": 100, "singleQuote": true, "trailingComma": "all", "semi": true }`; `.prettierignore`: dist, pnpm-lock, coverage.
-- [ ] **Step 4:** `pnpm format` по всему репо (один механический format-коммит), затем `pnpm lint:fix`; оставшиеся находки (если есть) чинить осмысленно, не подавляя без причины; итог: `pnpm lint` = 0 ошибок, 0 предупреждений.
-- [ ] **Step 5:** husky pre-commit + lint-staged: `*.{ts,tsx}` → eslint --fix, prettier --write. Проверить: коммит с нарушением формата должен автопоправляться.
-- [ ] **Step 6:** Обновить README (разработка: линт/формат). Commit: `chore(quality): eslint 9 flat config, prettier, husky pre-commit`.
+- [x] **Step 1:** Установить `oxlint`, `oxfmt`; удалить eslint-стек (eslint, typescript-eslint, eslint-plugin-react-hooks, eslint-plugin-react-refresh, prettier) и `.pnpmfile.cjs`.
+- [x] **Step 2:** `.oxlintrc.json`: плагины react/react-hooks/vitest/unicorn/import/jsx-a11y по надобности, type-aware linting (tsgo), правила эквивалентные прежним: no-unused-vars c `^_`, no-console (allow warn/error).
+- [x] **Step 3:** Конфиг oxfmt: printWidth 100, singleQuote, trailingComma all, semi; ignore: dist, coverage, pnpm-lock, .superpowers.
+- [x] **Step 4:** `pnpm format` по репо (механический коммит), затем lint-fix; подавления — только узкие inline-комментарии с причиной; итог `pnpm lint` = 0 ошибок/0 предупреждений.
+- [x] **Step 5:** husky pre-commit + lint-staged (oxlint --fix + oxfmt на staged ts/tsx); живая проверка хука в обе стороны.
+- [x] **Step 6:** README (линт/формат + почему oxlint/oxfmt). Commit: `refactor(quality): replace eslint+prettier with oxlint+oxfmt (Rust stack, TS7-native type-aware linting)`.
 
 ### Task 11: Docker + Nginx + бюджет бандла
 
