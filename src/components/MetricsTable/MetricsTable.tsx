@@ -17,7 +17,11 @@ export interface MetricRow {
 }
 
 export type MetricColumn =
-  'name' | 'depth' | 'totalHeadcount' | 'totalBudget' | 'weightedPerformance';
+  | 'name'
+  | 'depth'
+  | 'totalHeadcount'
+  | 'totalBudget'
+  | 'weightedPerformance';
 
 export interface MetricsTableProps {
   /** Уже отфильтрованные и отсортированные строки (sort/filter живут у вызывающего). */

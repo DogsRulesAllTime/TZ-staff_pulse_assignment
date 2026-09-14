@@ -239,11 +239,13 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 > (guide/usage/linter, guide/usage/formatter, migrate-from-eslint, migrate-from-prettier).
 
 **Files:**
+
 - Create: `.oxlintrc.json`, `.oxfmttrc`/конфиг oxfmt (по докам), `.husky/pre-commit`, `.lintstagedrc.json`
 - Remove: `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, eslint/prettier/typescript-eslint депы, `.pnpmfile.cjs`
 - Modify: `package.json` (scripts: `lint`, `lint:fix`, `format`, `format:check`; devDeps)
 
 **Interfaces:**
+
 - Produces: `pnpm lint` (0 warnings policy), `pnpm format:check`; pre-commit hook прогоняет lint-staged (oxlint --fix + oxfmt) на staged-файлах.
 
 - [x] **Step 1:** Установить `oxlint`, `oxfmt`; удалить eslint-стек (eslint, typescript-eslint, eslint-plugin-react-hooks, eslint-plugin-react-refresh, prettier) и `.pnpmfile.cjs`.
