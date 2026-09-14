@@ -1,6 +1,7 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import type { SortState } from '@/features/useTableSort'
 import { formatBudget, formatPerformance } from '@/domain/format'
+import { cellFlashKey, type FlashField } from '@/features/useCellFlash'
 import { PerformanceDot } from '@/components/shared/PerformanceDot'
 
 /** Плоская строка таблицы: узел + агрегаты его полного поддерева. */
@@ -30,6 +31,13 @@ export interface MetricsTableProps {
   onSelect: (id: string) => void
   filter: string
   onFilterChange: (value: string) => void
+  /**
+   * Fade-out (Task 8): `cellFlashKey → счётчик вспышек` из useCellFlash.
+   * Ключ есть → ячейка мигает; чётность счётчика выбирает одну из двух
+   * одинаковых keyframes-анимаций, чтобы повторный патч перезапускал
+   * анимацию, пока предыдущая не истекла.
+   */
+  flashingCells?: ReadonlyMap<string, number>
 }
 
 const LEVEL_LABELS = ['Дивизион', 'Отдел', 'Команда'] as const
@@ -112,11 +120,59 @@ const Td = styled.td`
   border-bottom: 1px solid ${({ theme }) => theme.colors.textMuted}22;
 `
 
+/**
+ * Fade-out обновлённой ячейки (бриф Task 8): opacity 1 → 0.35 → 1 за 1.5s.
+ * Два идентичных keyframes с разными именами — приём перезапуска анимации:
+ * смена data-flash-parity (чётность счётчика вспышек из useCellFlash) меняет
+ * совпадающий селектор, и анимация стартует заново на уже мигающей ячейке.
+ */
+const fadeOutCell = keyframes`
+  from {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
+`
+
+const fadeOutCellAlt = keyframes`
+  from {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
+`
+
 const TdNumeric = styled(Td)`
   text-align: right;
   /* Числа таблицы выровнены по разрядам (Global Constraints). */
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+
+  &[data-changed='true'][data-flash-parity='even'] {
+    animation: ${fadeOutCell} 1.5s ease-in-out;
+  }
+
+  &[data-changed='true'][data-flash-parity='odd'] {
+    animation: ${fadeOutCellAlt} 1.5s ease-in-out;
+  }
+
+  /* prefers-reduced-motion: значение обновляется без анимации (theme.motion).
+     Селекторы повторяют мигающие (та же специфичность, источник ниже) —
+     иначе одна анимация не перебила бы другую. */
+  @media ${({ theme }) => theme.motion} {
+    &[data-changed='true'][data-flash-parity='even'],
+    &[data-changed='true'][data-flash-parity='odd'] {
+      animation: none;
+    }
+  }
 `
 
 const Tr = styled.tr<{ $selected: boolean }>`
@@ -161,7 +217,11 @@ const EmptyRow = styled.td`
  * Presentational таблица агрегатов. Фильтрация и сортировка выполняются
  * выше (useDebouncedValue + useTableSort); здесь — отображение и колбэки.
  * Агрегаты в строках — полные агрегаты поддерева: фильтр их не пересчитывает.
+ * Fade-out (Task 8): data-changed ставится ТОЛЬКО на мигающие числовые ячейки
+ * (headcount/budget/performance конкретного узла), не на строку и не на таблицу.
  */
+const NUMERIC_FIELDS: readonly FlashField[] = ['totalHeadcount', 'totalBudget', 'weightedPerformance']
+
 export function MetricsTable({
   rows,
   sort,
@@ -170,7 +230,18 @@ export function MetricsTable({
   onSelect,
   filter,
   onFilterChange,
+  flashingCells,
 }: MetricsTableProps) {
+  const flashAttrs = (nodeId: string, field: FlashField) => {
+    if (!flashingCells) return {}
+    const flashCount = flashingCells.get(cellFlashKey({ nodeId, field }))
+    if (flashCount === undefined) return {}
+    return {
+      'data-changed': 'true',
+      'data-flash-parity': flashCount % 2 === 0 ? 'even' : 'odd',
+    }
+  }
+
   return (
     <Wrapper>
       <FilterInput
@@ -233,9 +304,11 @@ export function MetricsTable({
                   </NameCell>
                 </Td>
                 <Td>{levelLabel(row.depth)}</Td>
-                <TdNumeric>{row.totalHeadcount}</TdNumeric>
-                <TdNumeric>{formatBudget(row.totalBudget)}</TdNumeric>
-                <TdNumeric>
+                <TdNumeric {...flashAttrs(row.id, NUMERIC_FIELDS[0])}>{row.totalHeadcount}</TdNumeric>
+                <TdNumeric {...flashAttrs(row.id, NUMERIC_FIELDS[1])}>
+                  {formatBudget(row.totalBudget)}
+                </TdNumeric>
+                <TdNumeric {...flashAttrs(row.id, NUMERIC_FIELDS[2])}>
                   <PerfCell>
                     <PerformanceDot value={row.weightedPerformance} />
                     <span>{formatPerformance(row.weightedPerformance)}</span>

@@ -3,6 +3,8 @@ import styled from 'styled-components'
 import { defaultExpandedIds, type Forest } from '@/domain/tree'
 import { matchesFilter } from '@/domain/filter'
 import { useOrgData } from '@/features/useOrgData'
+import { useCellFlash } from '@/features/useCellFlash'
+import type { AppliedPatch } from '@/features/useSsePatches'
 import { UiStateProvider, useUiState } from '@/features/ui-state'
 import { useDebouncedValue } from '@/features/useDebouncedValue'
 import { useTableSort } from '@/features/useTableSort'
@@ -16,11 +18,15 @@ import {
 import { ViewToggle } from '@/components/ViewToggle'
 import { EmptyState, ErrorState, LoadingSkeleton } from '@/components/shared/States'
 
-/** Точка входа дашборда: UI-состояние (вид/выделение/фильтр) живёт в контексте. */
-export function OrgDashboard() {
+/**
+ * Точка входа дашборда: UI-состояние (вид/выделение/фильтр) живёт в контексте.
+ * `lastPatch` прокидывается из App (одна SSE-подписка на приложение) в
+ * useOrgData (инкрементальные агрегаты) и useCellFlash (fade-out ячеек).
+ */
+export function OrgDashboard({ lastPatch = null }: { lastPatch?: AppliedPatch | null }) {
   return (
     <UiStateProvider>
-      <DashboardBody />
+      <DashboardBody lastPatch={lastPatch} />
     </UiStateProvider>
   )
 }
@@ -61,8 +67,10 @@ const TablePane = styled(Pane)`
   }
 `
 
-function DashboardBody() {
-  const { forest, aggregates, status, refetch } = useOrgData()
+function DashboardBody({ lastPatch }: { lastPatch: AppliedPatch | null }) {
+  const { forest, aggregates, changedCells, status, refetch } = useOrgData(lastPatch)
+  // Fade-out ячеек (Task 8): ячейки последнего патча мигают 1.5с.
+  const flashingCells = useCellFlash(changedCells, lastPatch?.seq ?? 0)
   const { view, selectedId, setSelectedId, nameFilter, setNameFilter } = useUiState()
   const splitView = useMediaQuery(SPLIT_VIEW_QUERY)
 
@@ -145,6 +153,7 @@ function DashboardBody() {
         onSelect={setSelectedId}
         filter={nameFilter}
         onFilterChange={setNameFilter}
+        flashingCells={flashingCells}
       />
     )
     return (

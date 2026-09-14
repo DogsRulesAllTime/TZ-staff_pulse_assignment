@@ -37,8 +37,9 @@ const Spacer = styled.div`
 
 export function App() {
   // SSE-статус живёт на уровне App: подписка одна на приложение,
-  // патчи применяются к кешу ORG_TREE_KEY внутри хука.
-  const { status } = useSsePatches()
+  // патчи применяются к кешу ORG_TREE_KEY внутри хука. lastPatch прокидывается
+  // в OrgDashboard: инкрементальные агрегаты + fade-out ячеек (Task 8).
+  const { status, lastPatch } = useSsePatches()
 
   return (
     <>
@@ -48,7 +49,7 @@ export function App() {
         <Spacer />
         <ConnectionBadge status={status} />
       </Header>
-      <OrgDashboard />
+      <OrgDashboard lastPatch={lastPatch} />
     </>
   )
 }

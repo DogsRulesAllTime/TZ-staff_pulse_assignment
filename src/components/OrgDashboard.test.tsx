@@ -23,12 +23,17 @@ const fixture = [
   node({ id: 'team-1-2-1', name: 'Команда 1.2.1', parentId: 'dept-1-2', headcount: 20, budget: 50, performance: 45 }),
 ]
 
-function setOrgData(forest: Forest | undefined, status: OrgData['status'] = 'ready') {
+function setOrgData(
+  forest: Forest | undefined,
+  status: OrgData['status'] = 'ready',
+  changedCells: OrgData['changedCells'] = [],
+) {
   vi.mocked(useOrgData).mockReturnValue({
     forest,
     status,
     refetch: vi.fn(),
     aggregates: forest ? aggregateForest(forest) : undefined,
+    changedCells,
   })
 }
 
@@ -168,5 +173,26 @@ describe('OrgDashboard', () => {
     // Агрегаты поддерева: дивизион 230, отдел 1.2 — 80 (60+20), отдел 1.1 — 50, команды 20 и 10.
     const firstColumn = tableRows().map((row) => row.cells[2].textContent)
     expect(firstColumn).toEqual(['230', '80', '50', '20', '10'])
+  })
+
+  it('прокидывает lastPatch: changedCells из useOrgData попадают в data-changed таблицы', () => {
+    stubMatchMedia(true) // split-view: таблица отрендерена при дефолтном виде «дерево»
+    setOrgData(buildForest(fixture), 'ready', [{ nodeId: 'dept-1-1', field: 'totalBudget' }])
+    render(
+      <ThemeProvider theme={theme}>
+        <OrgDashboard
+          lastPatch={{ seq: 1, id: 'dept-1-1', affectedIds: ['dept-1-1'], updatedAt: '2025-01-02T00:00:00.000Z' }}
+        />
+      </ThemeProvider>,
+    )
+
+    const table = within(screen.getByRole('table'))
+    const row = table.getByRole('row', { name: 'Отдел 1.1' })
+    // totalBudget отдела 1.1 = 500 + 100 (команда) = 600.
+    const budgetCell = row.querySelector('td:nth-child(4)')!
+    expect(budgetCell).toHaveAttribute('data-changed', 'true')
+    // Остальные числовые ячейки строки не мигают.
+    expect(row.querySelector('td:nth-child(3)')).not.toHaveAttribute('data-changed')
+    expect(row.querySelector('td:nth-child(5)')).not.toHaveAttribute('data-changed')
   })
 })

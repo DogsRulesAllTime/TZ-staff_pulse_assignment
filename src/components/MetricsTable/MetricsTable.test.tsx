@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ThemeProvider } from 'styled-components'
 import { describe, expect, it, vi } from 'vitest'
@@ -129,5 +129,45 @@ describe('MetricsTable', () => {
     renderTable({ rows: [] })
 
     expect(screen.getByText('Ничего не найдено')).toBeInTheDocument()
+  })
+
+  it('без flashingCells ни одна ячейка не помечена data-changed', () => {
+    renderTable()
+
+    for (const row of screen.getAllByRole('row')) {
+      for (const cell of within(row).queryAllByRole('cell')) {
+        expect(cell).not.toHaveAttribute('data-changed')
+      }
+    }
+  })
+
+  it('fade-out: data-changed стоит ровно на мигающей числовой ячейке, не на строке/таблице', () => {
+    renderTable({ flashingCells: new Map([['dept-1-1:totalBudget', 1]]) })
+
+    const row = screen.getByRole('row', { name: 'Отдел 1.1' })
+    const budgetCell = within(row).getByText('650 000 руб.').closest('td')!
+    expect(budgetCell).toHaveAttribute('data-changed', 'true')
+    // Нечётный счётчик вспышек → альтернативные keyframes (рестарт анимации).
+    expect(budgetCell).toHaveAttribute('data-flash-parity', 'odd')
+
+    // Соседние числовые ячейки той же строки не мигают.
+    const headcountCell = within(row).getByText('10').closest('td')!
+    expect(headcountCell).not.toHaveAttribute('data-changed')
+    expect(within(row).getByText('54 %').closest('td')).not.toHaveAttribute('data-changed')
+
+    // Другие строки не мигают вообще.
+    const otherRow = screen.getByRole('row', { name: 'Дивизион 1' })
+    for (const td of within(otherRow).getAllByRole('cell')) {
+      expect(td).not.toHaveAttribute('data-changed')
+    }
+  })
+
+  it('fade-out: чётный счётчик вспышек → parity "even"', () => {
+    renderTable({ flashingCells: new Map([['div-1:totalHeadcount', 2]]) })
+
+    const row = screen.getByRole('row', { name: 'Дивизион 1' })
+    const headcountCell = within(row).getByText('110').closest('td')!
+    expect(headcountCell).toHaveAttribute('data-changed', 'true')
+    expect(headcountCell).toHaveAttribute('data-flash-parity', 'even')
   })
 })
