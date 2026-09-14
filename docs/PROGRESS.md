@@ -4,7 +4,7 @@
 задания закрыты). Задание = необходимый минимум; «Минимум» — пункт этапа задания,
 «Сверх» — инженерные добавки сверх минимума.
 
-Текущий этап: **03 POLISH — в работе** (Tasks 7–8 ✅; 134/134 тестов).
+Текущий этап: **03 POLISH — ✅ завершён, тег `step/3`** (147/147 тестов, бандл 120.9 КБ gzip).
 
 ## Журнал
 
@@ -33,10 +33,15 @@
 
 | 18 | 2025-09-14 | `8b440a2` | 03 | Инкрементальная агрегация: один aggregates-Map persists в ref; патч → recomputeBranch([id]) только по ветке (identity вне dirty-set), новые данные → полный aggregateForest; детекция patch-vs-full по (data, lastPatch.seq), idempotent под StrictMode; fade-out: value-diff по снапшоту ancestry (только реально изменившиеся ячейки узла+предков), 1.5s keyframes, reduced-motion; +17 тестов (134/134) | «Пересчёт агрегатов только для затронутого узла и его предков»; «обновлённые ячейки — fade-out ~1.5с» | value-diff вместо флага «всё мигает»; паритетный рестарт анимации для повторных патчей |
 
+| 19 | 2025-09-14 | `fef2505` | 03 | Keyboard nav по таблице: стрелки/Home/End с real DOM focus, preventDefault, scrollIntoView({block:'nearest'}); анимация дерева: grid-template-rows 0fr→1fr 200ms, persistent mount + `inert` на свёрнутом, reduced-motion; +12 тестов RED→GREEN (146/146) | «Keyboard navigation по таблице: стрелки, Home/End, Enter»; «Анимация раскрытия дерева через height transition; prefers-reduced-motion уважается» | live-DOM lookup вместо кэша refs — stale-фокус невозможен; inert-подход сохраняет a11y |
+| 20 | 2025-09-14 | `bdcf723` | 03 | Ревью-фикс: role="grid" (валидный aria-selected), modifier-guard (Ctrl/Cmd+стрелки не перехватываются), cleanup scrollIntoView-стаба; 147 тестов | — | — |
+| 21 | 2025-09-14 | *(этот коммит)* | docs | Чекбоксы Task 7–9 в плане (12 шагов), журнал, тег `step/3` | — | — |
+
 ## Чек-лист этапов
 
 - [x] `step/1` FOUNDATION — Tasks 1–4: scaffold ✅ mock API ✅ валидация ✅ кэш stale 5s ✅ дерево ✅ состояния ✅
 - [x] `step/2` CORE — Tasks 5–6: агрегация+unit-тест ✅ таблица ✅ сортировка ✅ фильтр 250мс ✅ связь таблица↔дерево ✅
+- [x] `step/3` POLISH — Tasks 7–9: SSE-патчи без рефетча ✅ fade-out 1.5с ✅ инкрементальная агрегация ✅ backoff+индикатор ✅ keyboard nav (стрелки/Home/End/Enter) ✅ анимация дерева + reduced-motion ✅
 - [ ] `step/2` CORE — Tasks 5–6
 - [ ] `step/3` POLISH — Tasks 7–9
 - [ ] `step/4` BONUS — Tasks 10–12

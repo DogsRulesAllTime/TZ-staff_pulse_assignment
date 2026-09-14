@@ -170,11 +170,11 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 - Consumes: `patchSchema` (новый в `schema.ts`), `queryClient`, `recomputeBranch`, `parentOf`.
 - Produces: `applyPatch(nodes: OrgNode[], patch: Patch): OrgNode[]` (чистая, структурная замена узла); `useSsePatches(): { status: 'connecting'|'online'|'offline' }`; hook устанавливает `setQueryData(ORG_TREE_KEY, next)` и возвращает затронутые id для fade-out.
 
-- [ ] **Step 1:** тесты `patch.test.ts`: валидный патч меняет только перечисленные поля и `updatedAt`; неизвестный id — игнор (массив без изменений); невалидный payload — `parse` rejection. FAIL → реализация → PASS.
-- [ ] **Step 2:** тесты `sse.test.ts` (mock EventSource): открытие → `online`; обрыв → `offline`, reconnect через 1с, затем 2с, 4с (fake timers), jitter не выводит за [0.7t, 1.3t], max 16с;успешный reconnect → `online` и backoff сбрасывается.
-- [ ] **Step 3:** `useSsePatches`: подписка через `EventSource('/api/events')`; на `patch` — `queryClient.setQueryData(ORG_TREE_KEY, (nodes) => applyPatch(nodes, parsed))`; MutationObserver-свободно: затронутые id кладутся в атомарный store (`useRef` + состояние) для fade-out в таблице. Cleanup в `useEffect` — закрытие EventSource и таймеров при размонтировании.
-- [ ] **Step 4:** `<ConnectionBadge status/>` в шапке (цвета из `theme.colors.status`).
-- [ ] **Step 5:** Commit: `git commit -m "feat(realtime): SSE patches with validated apply and backoff reconnect"`.
+- [x] **Step 1:** тесты `patch.test.ts`: валидный патч меняет только перечисленные поля и `updatedAt`; неизвестный id — игнор (массив без изменений); невалидный payload — `parse` rejection. FAIL → реализация → PASS.
+- [x] **Step 2:** тесты `sse.test.ts` (mock EventSource): открытие → `online`; обрыв → `offline`, reconnect через 1с, затем 2с, 4с (fake timers), jitter не выводит за [0.7t, 1.3t], max 16с;успешный reconnect → `online` и backoff сбрасывается.
+- [x] **Step 3:** `useSsePatches`: подписка через `EventSource('/api/events')`; на `patch` — `queryClient.setQueryData(ORG_TREE_KEY, (nodes) => applyPatch(nodes, parsed))`; MutationObserver-свободно: затронутые id кладутся в атомарный store (`useRef` + состояние) для fade-out в таблице. Cleanup в `useEffect` — закрытие EventSource и таймеров при размонтировании.
+- [x] **Step 4:** `<ConnectionBadge status/>` в шапке (цвета из `theme.colors.status`).
+- [x] **Step 5:** Commit: `git commit -m "feat(realtime): SSE patches with validated apply and backoff reconnect"`.
 
 ### Task 8: Инкрементальная агрегация + fade-out
 
@@ -186,10 +186,10 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 - Consumes: `recomputeBranch`, `aggregates` Map.
 - Produces: агрегаты, пересчитанные только по затронутой ветке; CSS-анимация `fadeOutCell` 1.5с на обновлённых ячейках.
 
-- [ ] **Step 1:** тест: применяется патч → `aggregates.get(id)` обновлён, агрегаты детей/соседей не пересчитывались (spy на DFS не вызван повторно — сравнение ссылок в Map для неизменённых узлов).
-- [ ] **Step 2:** подключение `recomputeBranch` в ветке применения патча; `aggregates` — `useMemo` от forest + версии патча.
-- [ ] **Step 3:** fade-out: ячейка с обновлённым значением получает `data-changed` на 1.5с (timeout per cell, cleanup при размонтировании); keyframes `opacity 1 → 0.35 → 1`; `prefers-reduced-motion` — без анимации.
-- [ ] **Step 4:** Commit: `git commit -m "feat(realtime): incremental aggregate recompute with cell fade-out"`.
+- [x] **Step 1:** тест: применяется патч → `aggregates.get(id)` обновлён, агрегаты детей/соседей не пересчитывались (spy на DFS не вызван повторно — сравнение ссылок в Map для неизменённых узлов).
+- [x] **Step 2:** подключение `recomputeBranch` в ветке применения патча; `aggregates` — `useMemo` от forest + версии патча.
+- [x] **Step 3:** fade-out: ячейка с обновлённым значением получает `data-changed` на 1.5с (timeout per cell, cleanup при размонтировании); keyframes `opacity 1 → 0.35 → 1`; `prefers-reduced-motion` — без анимации.
+- [x] **Step 4:** Commit: `git commit -m "feat(realtime): incremental aggregate recompute with cell fade-out"`.
 
 ### Task 9: Keyboard navigation + анимация дерева
 
@@ -201,12 +201,14 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 - Consumes: выделение из `ui-state`.
 - Produces: таблица с `role="grid"`, фокус-менеджмент строк/ячеек.
 
-- [ ] **Step 1:** тесты: ArrowDown/ArrowUp перемещают фокус строки; Home → первая строка, End → последняя; Enter → выбор узла (highlight в дереве). FAIL → реализация → PASS.
-- [ ] **Step 2:** анимация раскрытия: wrapper с `grid-template-rows: 0fr → 1fr` transition 200мс (или height от measured значения); `@media (prefers-reduced-motion: reduce)` — transition: none.
-- [ ] **Step 3:** Коммит + тег: `git commit -m "feat(ux): keyboard navigation, tree expand animation, reduced-motion support"`; `git tag step/3`.
+- [x] **Step 1:** тесты: ArrowDown/ArrowUp перемещают фокус строки; Home → первая строка, End → последняя; Enter → выбор узла (highlight в дереве). FAIL → реализация → PASS.
+- [x] **Step 2:** анимация раскрытия: wrapper с `grid-template-rows: 0fr → 1fr` transition 200мс (или height от measured значения); `@media (prefers-reduced-motion: reduce)` — transition: none.
+- [x] **Step 3:** Коммит + тег: `git commit -m "feat(ux): keyboard navigation, tree expand animation, reduced-motion support"`; `git tag step/3`.
 
 ---
 
+
+> **Статус:** этап 03 завершён (коммиты fb00203..bdcf723, тег `step/3`). SSE-патчи без рефетча, fade-out 1.5с, инкрементальная агрегация, backoff 1→16с, keyboard nav, grid-rows анимация с reduced-motion. См. `docs/PROGRESS.md`.
 ## Этап 04 — BONUS (тег `step/4`)
 
 ### Task 10: Docker + Nginx + бюджет бандла
