@@ -73,7 +73,7 @@ function rowOf(name: string): HTMLElement {
 
 /** Строки таблицы (role=row), исключая строку заголовка. */
 function tableRows(): HTMLTableRowElement[] {
-  return within(screen.getByRole('table'))
+  return within(screen.getByRole('grid'))
     .getAllByRole('row')
     .slice(1) as HTMLTableRowElement[]
 }
@@ -120,7 +120,7 @@ describe('OrgDashboard', () => {
     renderDashboard()
 
     expect(screen.getByRole('tree')).toBeInTheDocument()
-    expect(screen.getByRole('table')).toBeInTheDocument()
+    expect(screen.getByRole('grid')).toBeInTheDocument()
   })
 
   it('reduces table rows when the filter matches a subtree («1.1»), keeping ancestors', async () => {
@@ -155,7 +155,7 @@ describe('OrgDashboard', () => {
     expect(deptReveal).toHaveAttribute('inert')
     expect(within(deptReveal).getByText('Команда 1.1.1')).toBeInTheDocument()
 
-    await user.click(within(screen.getByRole('table')).getByText('Команда 1.1.1'))
+    await user.click(within(screen.getByRole('grid')).getByText('Команда 1.1.1'))
 
     expect(rowOf('Команда 1.1.1')).toHaveAttribute('aria-selected', 'true')
     expect(rowOf('Отдел 1.1')).toHaveAttribute('aria-expanded', 'true')
@@ -192,7 +192,7 @@ describe('OrgDashboard', () => {
       </ThemeProvider>,
     )
 
-    const table = within(screen.getByRole('table'))
+    const table = within(screen.getByRole('grid'))
     const row = table.getByRole('row', { name: 'Отдел 1.1' })
     // totalBudget отдела 1.1 = 500 + 100 (команда) = 600.
     const budgetCell = row.querySelector('td:nth-child(4)')!

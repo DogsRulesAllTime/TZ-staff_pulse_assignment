@@ -237,6 +237,9 @@ const NAV_KEYS = new Set(['ArrowDown', 'ArrowUp', 'Home', 'End'])
  * подтягивается через scrollIntoView({block:'nearest'}).
  */
 function handleRowNavKey(event: ReactKeyboardEvent<HTMLTableRowElement>) {
+  // Модификаторы (Ctrl/Meta/Alt/Shift + клавиша) — браузерные/ОС-шорткаты,
+  // построчную навигацию не трогаем.
+  if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return
   if (!NAV_KEYS.has(event.key)) return
   const tbody = event.currentTarget.closest('tbody')
   if (!tbody) return
@@ -286,7 +289,8 @@ export function MetricsTable({
         placeholder="Фильтр по названию"
         aria-label="Фильтр по названию"
       />
-      <Table>
+      {/* role="grid": aria-selected на <tr> валиден в ARIA только внутри grid/treegrid. */}
+      <Table role="grid">
         <thead>
           <tr>
             {COLUMNS.map(({ key, label, numeric }) => {

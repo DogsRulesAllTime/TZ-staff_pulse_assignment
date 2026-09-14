@@ -181,6 +181,9 @@ describe('MetricsTable keyboard navigation', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
+    // scrollIntoView-стабб через Object.defineProperty живёт на прототипе —
+    // удаляем его после каждого теста, чтобы утечка не трогала другие файлы.
+    delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView
   })
 
   function rowOf(name: string): HTMLTableRowElement {
@@ -282,6 +285,18 @@ describe('MetricsTable keyboard navigation', () => {
       fireEvent.keyDown(row, { key })
       expect(pd).toHaveBeenCalledTimes(1)
     }
+  })
+
+  it('Ctrl+ArrowDown не перехватывается: фокус не двигается и нет preventDefault', () => {
+    stubScrollIntoView()
+    renderTable({ rows: rows3 })
+
+    const pd = vi.spyOn(KeyboardEvent.prototype, 'preventDefault')
+    const first = rowOf('Дивизион 1')
+    first.focus()
+    fireEvent.keyDown(first, { key: 'ArrowDown', ctrlKey: true })
+    expect(first).toHaveFocus()
+    expect(pd).not.toHaveBeenCalled()
   })
 
   it('необработанные клавиши (ArrowLeft/ArrowRight) не перехватываются', () => {
