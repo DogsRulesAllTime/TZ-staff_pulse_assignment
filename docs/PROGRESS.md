@@ -4,7 +4,7 @@
 задания закрыты). Задание = необходимый минимум; «Минимум» — пункт этапа задания,
 «Сверх» — инженерные добавки сверх минимума.
 
-Текущий этап: **04 BONUS — в работе** (Task 10 ✅; 147/147 тестов, lint 0/0).
+Текущий этап: **04 BONUS — в работе** (Tasks 10–11 ✅; 154/154 тестов, lint 0/0).
 
 ## Журнал
 
@@ -41,6 +41,8 @@
 | 23 | 2025-09-14 | `de3488d`..`9d5b7e3` | 04 | **Ruling пользователя:** ESLint/Prettier → **Oxlint 1.83 + Oxfmt 0.68** (Rust, ~0.3с на 53 файла, 207 правил); type-aware через oxlint-tsgolint/tsgo = тот же TS7, что и tsc → `.pnpmfile.cjs` TS6-пин удалён; миграция 8 подавлений 1:1 с причинами; hook verified both ways; `+4f0e9c3` прочистка deps | «позаботься о красоте инфры» | современный Rust-инструментарий вместо legacy-стека; lint-bar 0/0 |
 | 24 | 2025-09-14 | _(этот коммит)_ | docs | Журнал Task 10 (rework) | — | — |
 | 25 | 2025-09-14 | _(этот коммит)_ | 04 | Task 11: Docker + Nginx + бюджет бандла. `scripts/check-size.mjs` — gzip-сумма `dist/assets/*.js` ≤ 200 000 байт, wired в `build` (tsc → typecheck:node → vite build → check:size); **текущий размер 119 669 байт gzip (120.9 КБ) / бюджет 200 КБ**; юнит-тест хелпера (+7 тестов RED→GREEN, 154/154). Dockerfile.client (multi-stage node:22-alpine → nginx:alpine, BuildKit cache mount pnpm store), Dockerfile.server (node:22-alpine, полный install — express/cors в devDependencies, прод-обрезку не делаем), nginx/default.conf (gzip js/css/json/svg, immutable /assets/, SPA-фолбэк, /api → server:4000, /api/events: proxy_buffering off + read timeout 1h + Connection ''), docker-compose.yml (client :${NGINX_PORT:-8080}→80, server не проброшен, healthchecks wget, depends_on service_healthy), .env.example (+VITE_API_BASE_URL, PORT, CORS_ORIGIN, NGINX_PORT), .dockerignore | brief + rulings контролёра | Live-проверка `docker compose up` заблокирована: docker daemon не запущен (unix://…/docker.sock недоступен, Docker Desktop не поднят) — запускать его самому запрещено; compose-манифест провалидирован `docker compose config` |
+
+| 25 | 2025-09-14 | `2f86667` | 04 | Docker: Dockerfile.client (multi-stage node:22-alpine→nginx:alpine) + Dockerfile.server (tsx через PATH), nginx (gzip, SPA fallback, /api прокси, SSE: buffering off/1h/Connection ''), compose (healthchecks, depends_on, .env), .dockerignore; check-size.mjs — gzip-СУММА assets ≤200КБ, gated в build, 7 unit-тестов RED→GREEN; live-верификация после `5357c15`: SPA✓ API 45 узлов✓ SSE через nginx✓ gzip✓ (+ найден и починен реальный баг gzip_min_length: index.html никогда не сжимался); 154/154 | «Docker: docker-compose up поднимает клиент и сервер; конфиг через .env»; «Nginx: проксирует API, отдаёт статику с gzip; production-сборка ≤200 КБ gzip» | healthchecks; BuildKit cache mounts; budget-gate в build |
 
 ## Чек-лист этапов
 
