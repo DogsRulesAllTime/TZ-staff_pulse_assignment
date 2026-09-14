@@ -82,6 +82,41 @@ describe('MetricsTable', () => {
     expect(props.onSelect).toHaveBeenCalledWith('dept-1-1')
   })
 
+  it('marks the selected row with aria-selected and is keyboard-focusable', () => {
+    renderTable({ selectedId: 'dept-1-1' })
+
+    const row = screen.getByRole('row', { name: 'Отдел 1.1' })
+    expect(row).toHaveAttribute('aria-selected', 'true')
+    expect(row).toHaveAttribute('tabindex', '0')
+
+    const otherRow = screen.getByRole('row', { name: 'Дивизион 1' })
+    expect(otherRow).toHaveAttribute('aria-selected', 'false')
+  })
+
+  it('selects a node on row Enter', async () => {
+    const user = userEvent.setup()
+    const props = renderTable()
+
+    const row = screen.getByText('Отдел 1.1').closest('tr')!
+    row.focus()
+    expect(row).toHaveFocus()
+
+    await user.keyboard('{Enter}')
+    expect(props.onSelect).toHaveBeenCalledWith('dept-1-1')
+  })
+
+  it('selects a node on row Space', async () => {
+    const user = userEvent.setup()
+    const props = renderTable()
+
+    const row = screen.getByText('Дивизион 1').closest('tr')!
+    row.focus()
+    expect(row).toHaveFocus()
+
+    await user.keyboard(' ')
+    expect(props.onSelect).toHaveBeenCalledWith('div-1')
+  })
+
   it('propagates filter input changes', async () => {
     const user = userEvent.setup()
     const props = renderTable()

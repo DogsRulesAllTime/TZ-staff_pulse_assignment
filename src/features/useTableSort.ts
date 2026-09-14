@@ -20,6 +20,8 @@ export interface SortState<K extends string = string> {
  *
  * Дефолт — по `name` asc (задаётся вызывающим кодом через `initial`).
  * Числа сравниваются численно, строки — локале-зависимо ('ru').
+ * Смешанные/неполные типы: если значение не число с обеих сторон —
+ * откат к строковому сравнению через String().
  */
 export function useTableSort<T, K extends keyof T & string>(
   rows: readonly T[],

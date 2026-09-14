@@ -127,6 +127,11 @@ const Tr = styled.tr<{ $selected: boolean }>`
   &:hover {
     background: ${({ theme }) => `${theme.colors.textMuted}14`};
   }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.text};
+    outline-offset: -2px;
+  }
 `
 
 const NameCell = styled.div`
@@ -210,7 +215,17 @@ export function MetricsTable({
                 key={row.id}
                 $selected={row.id === selectedId}
                 data-row-id={row.id}
+                tabIndex={0}
+                aria-selected={row.id === selectedId}
+                aria-label={row.name}
+                title={row.name}
                 onClick={() => onSelect(row.id)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    onSelect(row.id)
+                  }
+                }}
               >
                 <Td>
                   <NameCell>

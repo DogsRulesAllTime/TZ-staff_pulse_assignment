@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
  * Реактивный matchMedia: true, когда медиа-запрос совпадает.
  * Используется для split-view ≥1280px — обе панели рендерятся только на
  * широком экране; ниже порога активен единственный вид (ViewToggle).
- * jsdom не реализует matchMedia — считаем экран узким (false).
+ * jsdom реализует matchMedia (всегда matches: false), поэтому в компонентных
+ * тестах экран считается узким; guard нужен для окружений без matchMedia
+ * и для явной подмены в тестах.
  */
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() =>
