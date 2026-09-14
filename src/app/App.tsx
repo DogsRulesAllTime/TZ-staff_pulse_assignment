@@ -1,5 +1,7 @@
 import styled, { createGlobalStyle } from 'styled-components'
 import { OrgDashboard } from '@/components/OrgDashboard'
+import { ConnectionBadge } from '@/components/shared/ConnectionBadge'
+import { useSsePatches } from '@/features/useSsePatches'
 
 const GlobalStyle = createGlobalStyle`
   *, *::before, *::after {
@@ -29,12 +31,22 @@ const Title = styled.h1`
   letter-spacing: 0.02em;
 `
 
+const Spacer = styled.div`
+  flex: 1;
+`
+
 export function App() {
+  // SSE-статус живёт на уровне App: подписка одна на приложение,
+  // патчи применяются к кешу ORG_TREE_KEY внутри хука.
+  const { status } = useSsePatches()
+
   return (
     <>
       <GlobalStyle />
       <Header>
         <Title>Staff Pulse</Title>
+        <Spacer />
+        <ConnectionBadge status={status} />
       </Header>
       <OrgDashboard />
     </>
