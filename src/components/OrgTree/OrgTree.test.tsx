@@ -79,6 +79,7 @@ describe('OrgTree', () => {
 
   it.each([
     ['Дивизион 1', 85, 'rgb(46, 158, 91)'],
+    ['Отдел 1.1', 60, 'rgb(224, 168, 0)'],
     ['Отдел 1.2', 30, 'rgb(214, 69, 69)'],
     ['Команда 1.1.1', 90, 'rgb(46, 158, 91)'],
   ])('colors the performance dot of «%s» (value %i)', (name, _value, expectedColor) => {

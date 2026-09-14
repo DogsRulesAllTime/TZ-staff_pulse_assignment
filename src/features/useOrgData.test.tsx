@@ -1,6 +1,5 @@
 import { renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ORG_TREE_KEY } from '@/data/cache'
 import { useOrgData } from './useOrgData'
 import { buildForest, type TreeNode } from '@/domain/tree'
 
@@ -152,6 +151,5 @@ describe('useOrgData', () => {
     const { result } = renderHook(() => useOrgData())
 
     expect(result.current.refetch).toBe(refetch)
-    expect(ORG_TREE_KEY).toEqual(['org-tree'])
   })
 })

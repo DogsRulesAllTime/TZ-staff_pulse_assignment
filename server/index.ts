@@ -31,6 +31,9 @@ app.get('/api/events', (req, res) => {
   res.flushHeaders()
 
   const unsubscribe = hub.add({ write: (chunk) => res.write(chunk) })
+  // Ответ может быть уничтожен, пока broadcast ещё пишет в него
+  // (ERR_STREAM_DESTROYED): ошибка потока просто отписывает клиента.
+  res.on('error', unsubscribe)
   req.on('close', unsubscribe)
 })
 
