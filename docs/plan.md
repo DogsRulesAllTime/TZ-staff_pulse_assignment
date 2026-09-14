@@ -41,12 +41,12 @@
 **Interfaces:**
 - Produces: алиас `@/` → `src/`; тему styled-components (тип `Theme` экспортируется из `@/app/theme`); точки входа `pnpm dev` (concurrently: клиент+сервер), `pnpm test`.
 
-- [ ] **Step 1:** `pnpm create vite@latest . --template react-ts` внутри репозитория (плоско, не в подпапке клиента), затем добавить зависимости: `pnpm add @tanstack/react-query zod styled-components @types/styled-components` и dev: `vitest @testing-library/react @testing-library/jest-dom jsdom express cors tsx concurrently`.
-- [ ] **Step 2:** настроить `vite.config.ts`: `resolve.alias['@'] = path.resolve(__dirname, 'src')`, `server.proxy['/api'] = 'http://localhost:4000'`; `tsconfig.json`: `"paths": {"@/*": ["./src/*"]}`, `strict: true`.
-- [ ] **Step 3:** `src/app/theme.ts` — токены: `colors.performance = { good: '#2e9e5b', mid: '#e0a800', bad: '#d64545' }`, `colors.status = { online, connecting, offline }`, `radii`, `spacing`, `motion: '(prefers-reduced-motion: reduce)'`. Экспортировать `Theme` и `theme`.
-- [ ] **Step 4:** `src/main.tsx` — `<QueryClientProvider><ThemeProvider theme={theme}><App/></ThemeProvider></QueryClientProvider>`; `QueryClient` c `defaultOptions.queries.staleTime = 5000`.
-- [ ] **Step 5:** smoke-тест `src/app/App.test.tsx`: рендерится заголовок «Staff Pulse». `pnpm test` → PASS.
-- [ ] **Step 6:** Commit: `git commit -m "chore: scaffold vite+react+ts app with theme, query client and vitest"`.
+- [x] **Step 1:** `pnpm create vite@latest . --template react-ts` внутри репозитория (плоско, не в подпапке клиента), затем добавить зависимости: `pnpm add @tanstack/react-query zod styled-components @types/styled-components` и dev: `vitest @testing-library/react @testing-library/jest-dom jsdom express cors tsx concurrently`.
+- [x] **Step 2:** настроить `vite.config.ts`: `resolve.alias['@'] = path.resolve(__dirname, 'src')`, `server.proxy['/api'] = 'http://localhost:4000'`; `tsconfig.json`: `"paths": {"@/*": ["./src/*"]}`, `strict: true`.
+- [x] **Step 3:** `src/app/theme.ts` — токены: `colors.performance = { good: '#2e9e5b', mid: '#e0a800', bad: '#d64545' }`, `colors.status = { online, connecting, offline }`, `radii`, `spacing`, `motion: '(prefers-reduced-motion: reduce)'`. Экспортировать `Theme` и `theme`.
+- [x] **Step 4:** `src/main.tsx` — `<QueryClientProvider><ThemeProvider theme={theme}><App/></ThemeProvider></QueryClientProvider>`; `QueryClient` c `defaultOptions.queries.staleTime = 5000`.
+- [x] **Step 5:** smoke-тест `src/app/App.test.tsx`: рендерится заголовок «Staff Pulse». `pnpm test` → PASS.
+- [x] **Step 6:** Commit: `git commit -m "chore: scaffold vite+react+ts app with theme, query client and vitest"`.
 
 ### Task 2: Mock-сервер
 
@@ -57,11 +57,11 @@
 **Interfaces:**
 - Produces: `GET /api/org-tree` → `OrgNode[]` (≥40 узлов, 3 уровня: 4 дивизиона → 2–3 отдела → 2–3 команды); `GET /api/events` → SSE `event: patch` c payload `{ id, changes, updatedAt }`.
 
-- [ ] **Step 1:** тест-фабрика данных: `buildOrgTree()` возвращает ≥40 узлов; тест проверяет: `nodes.length >= 40`, `depths.max >= 2`, `parentId` ссылается только на существующие id, корней ≥ 1. Запустить: `pnpm vitest run server/org-data.test.ts` → FAIL.
-- [ ] **Step 2:** реализовать `server/org-data.ts` — детерминированный генератор (seeded PRNG, чтобы данные стабильны между перезапусками): 4 дивизиона, у каждого 2–3 отдела, у отдела 2–3 команды; headcount 3–60, budget 100_000–50_000_000, performance 10–99.
-- [ ] **Step 3:** `server/index.ts` — Express: `GET /api/org-tree` (CORS для :5173), `GET /api/events` (`Content-Type: text/event-stream`, `Cache-Control: no-cache`, `proxy_buffering` off); `server/mutations.ts` — интервал 2–6с: выбрать случайный узел, мутировать 1–2 поля (headcount ±1–3, budget ±, performance ±10 c clamp 0..100), разослать `event: patch` всем подписчикам; heartbeat-комментарий `: ping` каждые 15с.
-- [ ] **Step 4:** `pnpm vitest run server/org-data.test.ts` → PASS. Ручная проверка: `curl -N localhost:4000/api/events` — патчи приходят.
-- [ ] **Step 5:** Commit: `git commit -m "feat(server): mock org-tree API with SSE patch stream"`.
+- [x] **Step 1:** тест-фабрика данных: `buildOrgTree()` возвращает ≥40 узлов; тест проверяет: `nodes.length >= 40`, `depths.max >= 2`, `parentId` ссылается только на существующие id, корней ≥ 1. Запустить: `pnpm vitest run server/org-data.test.ts` → FAIL.
+- [x] **Step 2:** реализовать `server/org-data.ts` — детерминированный генератор (seeded PRNG, чтобы данные стабильны между перезапусками): 4 дивизиона, у каждого 2–3 отдела, у отдела 2–3 команды; headcount 3–60, budget 100_000–50_000_000, performance 10–99.
+- [x] **Step 3:** `server/index.ts` — Express: `GET /api/org-tree` (CORS для :5173), `GET /api/events` (`Content-Type: text/event-stream`, `Cache-Control: no-cache`, `proxy_buffering` off); `server/mutations.ts` — интервал 2–6с: выбрать случайный узел, мутировать 1–2 поля (headcount ±1–3, budget ±, performance ±10 c clamp 0..100), разослать `event: patch` всем подписчикам; heartbeat-комментарий `: ping` каждые 15с.
+- [x] **Step 4:** `pnpm vitest run server/org-data.test.ts` → PASS. Ручная проверка: `curl -N localhost:4000/api/events` — патчи приходят.
+- [x] **Step 5:** Commit: `git commit -m "feat(server): mock org-tree API with SSE patch stream"`.
 
 ### Task 3: Слой data — схема, API, кэш
 
@@ -72,8 +72,8 @@
 **Interfaces:**
 - Produces: тип `OrgNode` (из zod-схемы `z.infer`); `fetchOrgTree(): Promise<OrgNode[]>` (бросает `ApiError` на невалидный ответ); `QueryClient` с ключом `['org-tree']`.
 
-- [ ] **Step 1:** тест схемы (сначала): валидный узел проходит; невалидный (performance 150, отрицательный headcount, отсутствует name) — reject; пустой массив — валиден; невалидный parentId-референс на уровне forest-валидации (`validateForest`) — reject. Запустить → FAIL.
-- [ ] **Step 2:** `src/data/schema.ts`:
+- [x] **Step 1:** тест схемы (сначала): валидный узел проходит; невалидный (performance 150, отрицательный headcount, отсутствует name) — reject; пустой массив — валиден; невалидный parentId-референс на уровне forest-валидации (`validateForest`) — reject. Запустить → FAIL.
+- [x] **Step 2:** `src/data/schema.ts`:
 
 ```ts
 import { z } from 'zod';
@@ -90,9 +90,9 @@ export const orgTreeSchema = z.array(orgNodeSchema);
 export type OrgNode = z.infer<typeof orgNodeSchema>;
 ```
 
-- [ ] **Step 3:** `src/data/api.ts` — `fetch` c `AbortSignal.timeout(10_000)`, `res.ok`-проверка, `orgTreeSchema.parse(await res.json())`; ошибка parse/network → `ApiError` (единый тип для Error-состояния).
-- [ ] **Step 4:** `src/data/cache.ts` — экспорт `ORG_TREE_KEY = ['org-tree'] as const` и хелперов `useOrgTreeQuery()` над `useQuery({ queryKey, queryFn: fetchOrgTree })`. `staleTime: 5000` уже в дефолтах клиента.
-- [ ] **Step 5:** тесты PASS; Commit: `git commit -m "feat(data): zod-validated org-tree API layer with query cache"`.
+- [x] **Step 3:** `src/data/api.ts` — `fetch` c `AbortSignal.timeout(10_000)`, `res.ok`-проверка, `orgTreeSchema.parse(await res.json())`; ошибка parse/network → `ApiError` (единый тип для Error-состояния).
+- [x] **Step 4:** `src/data/cache.ts` — экспорт `ORG_TREE_KEY = ['org-tree'] as const` и хелперов `useOrgTreeQuery()` над `useQuery({ queryKey, queryFn: fetchOrgTree })`. `staleTime: 5000` уже в дефолтах клиента.
+- [x] **Step 5:** тесты PASS; Commit: `git commit -m "feat(data): zod-validated org-tree API layer with query cache"`.
 
 ### Task 4: Дерево + состояния
 
@@ -104,15 +104,17 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 - Consumes: `useOrgTreeQuery`, типы `OrgNode`, `Theme`.
 - Produces: `buildForest(nodes: OrgNode[]): Forest` (см. data-model.md); `useOrgData(): { forest, aggregates?, status: 'loading'|'error'|'empty'|'ready', refetch }`; `<OrgTree forest expanded onToggle/>`.
 
-- [ ] **Step 1:** тест `tree.test.ts`: из 5 узлов (1 корень, 2 отдела, 2 команды) строится Forest; `depth` корректен; parentId на несуществующий узел → бросает `DataError`; цикл → `DataError`. FAIL → реализовать `tree.ts` (Map-проход) → PASS.
-- [ ] **Step 2:** `useOrgData.ts`: маппинг статуса query на `'loading'|'error'|'empty'|'ready'`; `forest = useMemo(() => buildForest(data), [data])`.
-- [ ] **Step 3:** `OrgTree`: рекурсивный рендер; раскрытие/скрытие по клику на шеврон; `defaultExpanded`: все узлы `depth <= 1` (второй уровень открыт). Строка узла: имя, `headcount` чел., `<PerformanceDot value/>` (цвет по порогам ≥80 / 50–79 / <50). Анимация раскрытия (height transition) добавляется на этапе 03 — здесь только логика.
-- [ ] **Step 4:** `OrgDashboard`: status-ветки — `<LoadingSkeleton/>`, `<ErrorState onRetry={refetch}/>` (кнопка «Повторить»), `<EmptyState/>`, иначе `<OrgTree/>`. Никакого inline-CSS — все стили styled-components.
-- [ ] **Step 5:** тест `OrgTree.test.tsx`: второй уровень виден без клика; клик по шеврону скрывает ветвь; клик снова раскрывает. PASS.
-- [ ] **Step 6:** Коммит этапа + тег: `git commit -m "feat(tree): interactive org tree with loading/error/empty states"`; `git tag step/1`.
+- [x] **Step 1:** тест `tree.test.ts`: из 5 узлов (1 корень, 2 отдела, 2 команды) строится Forest; `depth` корректен; parentId на несуществующий узел → бросает `DataError`; цикл → `DataError`. FAIL → реализовать `tree.ts` (Map-проход) → PASS.
+- [x] **Step 2:** `useOrgData.ts`: маппинг статуса query на `'loading'|'error'|'empty'|'ready'`; `forest = useMemo(() => buildForest(data), [data])`.
+- [x] **Step 3:** `OrgTree`: рекурсивный рендер; раскрытие/скрытие по клику на шеврон; `defaultExpanded`: все узлы `depth <= 1` (второй уровень открыт). Строка узла: имя, `headcount` чел., `<PerformanceDot value/>` (цвет по порогам ≥80 / 50–79 / <50). Анимация раскрытия (height transition) добавляется на этапе 03 — здесь только логика.
+- [x] **Step 4:** `OrgDashboard`: status-ветки — `<LoadingSkeleton/>`, `<ErrorState onRetry={refetch}/>` (кнопка «Повторить»), `<EmptyState/>`, иначе `<OrgTree/>`. Никакого inline-CSS — все стили styled-components.
+- [x] **Step 5:** тест `OrgTree.test.tsx`: второй уровень виден без клика; клик по шеврону скрывает ветвь; клик снова раскрывает. PASS.
+- [x] **Step 6:** Коммит этапа + тег: `git commit -m "feat(tree): interactive org tree with loading/error/empty states"`; `git tag step/1`.
 
 ---
 
+
+> **Статус:** этап 01 завершён (коммиты 78d6a4a..50eb50d, тег `step/1` на 8e1b7e3). См. `docs/PROGRESS.md`.
 ## Этап 02 — CORE (тег `step/2`)
 
 ### Task 5: Агрегация (unit-тест обязателен по заданию)
