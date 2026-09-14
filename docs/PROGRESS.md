@@ -4,7 +4,7 @@
 задания закрыты). Задание = необходимый минимум; «Минимум» — пункт этапа задания,
 «Сверх» — инженерные добавки сверх минимума.
 
-Текущий этап: **03 POLISH — ✅ завершён, тег `step/3`** (147/147 тестов, бандл 120.9 КБ gzip).
+Текущий этап: **04 BONUS — в работе** (Task 10 ✅; 147/147 тестов, lint 0/0).
 
 ## Журнал
 
@@ -36,6 +36,10 @@
 | 19 | 2025-09-14 | `fef2505` | 03 | Keyboard nav по таблице: стрелки/Home/End с real DOM focus, preventDefault, scrollIntoView({block:'nearest'}); анимация дерева: grid-template-rows 0fr→1fr 200ms, persistent mount + `inert` на свёрнутом, reduced-motion; +12 тестов RED→GREEN (146/146) | «Keyboard navigation по таблице: стрелки, Home/End, Enter»; «Анимация раскрытия дерева через height transition; prefers-reduced-motion уважается» | live-DOM lookup вместо кэша refs — stale-фокус невозможен; inert-подход сохраняет a11y |
 | 20 | 2025-09-14 | `bdcf723` | 03 | Ревью-фикс: role="grid" (валидный aria-selected), modifier-guard (Ctrl/Cmd+стрелки не перехватываются), cleanup scrollIntoView-стаба; 147 тестов | — | — |
 | 21 | 2025-09-14 | _(этот коммит)_ | docs | Чекбоксы Task 7–9 в плане (12 шагов), журнал, тег `step/3` | — | — |
+
+| 22 | 2025-09-14 | `6a8b1e5`..`4f0e9c3` | 04 | (заменено) ESLint 9 flat + Prettier + husky: format-коммит 63 файлов, 8 inline-подавлений с причинами, pre-commit lint-staged | — | — |
+| 23 | 2025-09-14 | `de3488d`..`9d5b7e3` | 04 | **Ruling пользователя:** ESLint/Prettier → **Oxlint 1.83 + Oxfmt 0.68** (Rust, ~0.3с на 53 файла, 207 правил); type-aware через oxlint-tsgolint/tsgo = тот же TS7, что и tsc → `.pnpmfile.cjs` TS6-пин удалён; миграция 8 подавлений 1:1 с причинами; hook verified both ways; `+4f0e9c3` прочистка deps | «позаботься о красоте инфры» | современный Rust-инструментарий вместо legacy-стека; lint-bar 0/0 |
+| 24 | 2025-09-14 | *(этот коммит)* | docs | Журнал Task 10 (rework) | — | — |
 
 ## Чек-лист этапов
 
