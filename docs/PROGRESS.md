@@ -4,7 +4,7 @@
 задания закрыты). Задание = необходимый минимум; «Минимум» — пункт этапа задания,
 «Сверх» — инженерные добавки сверх минимума.
 
-Текущий этап: **04 BONUS — в работе** (Tasks 10–11 ✅; 154/154 тестов, lint 0/0).
+Текущий этап: **04 BONUS — в работе** (Tasks 10–12 ✅; 190/190 тестов, lint 0/0).
 
 ## Журнал
 
@@ -43,6 +43,9 @@
 | 25 | 2025-09-14 | _(этот коммит)_ | 04 | Task 11: Docker + Nginx + бюджет бандла. `scripts/check-size.mjs` — gzip-сумма `dist/assets/*.js` ≤ 200 000 байт, wired в `build` (tsc → typecheck:node → vite build → check:size); **текущий размер 119 669 байт gzip (120.9 КБ) / бюджет 200 КБ**; юнит-тест хелпера (+7 тестов RED→GREEN, 154/154). Dockerfile.client (multi-stage node:22-alpine → nginx:alpine, BuildKit cache mount pnpm store), Dockerfile.server (node:22-alpine, полный install — express/cors в devDependencies, прод-обрезку не делаем), nginx/default.conf (gzip js/css/json/svg, immutable /assets/, SPA-фолбэк, /api → server:4000, /api/events: proxy_buffering off + read timeout 1h + Connection ''), docker-compose.yml (client :${NGINX_PORT:-8080}→80, server не проброшен, healthchecks wget, depends_on service_healthy), .env.example (+VITE_API_BASE_URL, PORT, CORS_ORIGIN, NGINX_PORT), .dockerignore | brief + rulings контролёра | Live-проверка `docker compose up` заблокирована: docker daemon не запущен (unix://…/docker.sock недоступен, Docker Desktop не поднят) — запускать его самому запрещено; compose-манифест провалидирован `docker compose config` |
 
 | 25 | 2025-09-14 | `2f86667` | 04 | Docker: Dockerfile.client (multi-stage node:22-alpine→nginx:alpine) + Dockerfile.server (tsx через PATH), nginx (gzip, SPA fallback, /api прокси, SSE: buffering off/1h/Connection ''), compose (healthchecks, depends_on, .env), .dockerignore; check-size.mjs — gzip-СУММА assets ≤200КБ, gated в build, 7 unit-тестов RED→GREEN; live-верификация после `5357c15`: SPA✓ API 45 узлов✓ SSE через nginx✓ gzip✓ (+ найден и починен реальный баг gzip_min_length: index.html никогда не сжимался); 154/154 | «Docker: docker-compose up поднимает клиент и сервер; конфиг через .env»; «Nginx: проксирует API, отдаёт статику с gzip; production-сборка ≤200 КБ gzip» | healthchecks; BuildKit cache mounts; budget-gate в build |
+
+| 26 | 2025-09-14 | `1910ab7` | 04 | AI-поиск: parseNaturalQuery — RU-грамматика (роли, человек, бюджет с млн/млрд/тыс/к, RU-десятичная запятая «1,5 млн», пробельные тысячи, combined AND), fail-closed → fallback текстового поиска через единую строку поиска; structuredFilter в ui-state (backward-compat); таблица фильтрует по агрегатам, дерево подсвечивает (dim, не hide); «распознано: …» hint; +36 тестов (190/190) | «AI-поиск: строка поиска принимает естественный язык; ответ — структурированный фильтр на клиенте; fallback — текстовый поиск» | детерминированный парсер без LLM/сети; fail-closed грамматика (мусор → обычный поиск, не ложный фильтр) |
+| 27 | 2025-09-14 | *(этот коммит)* | docs | Журнал Task 12 + фикс дубля строки 25 | — | ⚠️-резолюция контроллера: «RU+EN» = форматы чисел EN (покрыто), ключевые слова RU по брифу |
 
 ## Чек-лист этапов
 
