@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 
 /**
  * Реактивный matchMedia: true, когда медиа-запрос совпадает.
@@ -11,23 +11,23 @@ import { useEffect, useState } from 'react'
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() =>
     typeof window.matchMedia === 'function' ? window.matchMedia(query).matches : false,
-  )
+  );
 
   useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return
-    const mql = window.matchMedia(query)
+    if (typeof window.matchMedia !== 'function') return;
+    const mql = window.matchMedia(query);
     const onChange = (event: MediaQueryListEvent): void => {
-      setMatches(event.matches)
-    }
-    setMatches(mql.matches)
-    mql.addEventListener('change', onChange)
+      setMatches(event.matches);
+    };
+    setMatches(mql.matches);
+    mql.addEventListener('change', onChange);
     return () => {
-      mql.removeEventListener('change', onChange)
-    }
-  }, [query])
+      mql.removeEventListener('change', onChange);
+    };
+  }, [query]);
 
-  return matches
+  return matches;
 }
 
 /** Порог split-view из задания: обе панели рядом начиная с 1280px. */
-export const SPLIT_VIEW_QUERY = '(min-width: 1280px)'
+export const SPLIT_VIEW_QUERY = '(min-width: 1280px)';

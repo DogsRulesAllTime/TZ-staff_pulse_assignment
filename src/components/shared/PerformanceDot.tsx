@@ -1,11 +1,11 @@
-import styled, { useTheme } from 'styled-components'
-import type { DefaultTheme } from 'styled-components'
+import styled, { useTheme } from 'styled-components';
+import type { DefaultTheme } from 'styled-components';
 
 /** Цветовой индикатор эффективности: ≥ 80 зелёный, 50–79 жёлтый, < 50 красный. */
 export function performanceColor(value: number, theme: DefaultTheme): string {
-  if (value >= 80) return theme.colors.performance.good
-  if (value >= 50) return theme.colors.performance.mid
-  return theme.colors.performance.bad
+  if (value >= 80) return theme.colors.performance.good;
+  if (value >= 50) return theme.colors.performance.mid;
+  return theme.colors.performance.bad;
 }
 
 const Dot = styled.span<{ $color: string }>`
@@ -14,14 +14,14 @@ const Dot = styled.span<{ $color: string }>`
   height: 8px;
   border-radius: ${({ theme }) => theme.radii.round};
   background: ${({ $color }) => $color};
-`
+`;
 
 export interface PerformanceDotProps {
-  value: number
+  value: number;
 }
 
 export function PerformanceDot({ value }: PerformanceDotProps) {
-  const theme = useTheme()
+  const theme = useTheme();
   return (
     <Dot
       $color={performanceColor(value, theme)}
@@ -29,5 +29,5 @@ export function PerformanceDot({ value }: PerformanceDotProps) {
       title={`Эффективность: ${value}`}
       aria-label={`Эффективность: ${value}`}
     />
-  )
+  );
 }

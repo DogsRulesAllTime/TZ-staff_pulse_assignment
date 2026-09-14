@@ -1,4 +1,4 @@
-import type { OrgNode, Patch } from '@/data/schema'
+import type { OrgNode, Patch } from '@/data/schema';
 
 /**
  * Чистое применение SSE-патча к плоскому массиву узлов (содержимое кеша
@@ -13,12 +13,12 @@ import type { OrgNode, Patch } from '@/data/schema'
  * (Task 8) поверх нового массива.
  */
 export function applyPatch(nodes: OrgNode[], patch: Patch): OrgNode[] {
-  const index = nodes.findIndex((candidate) => candidate.id === patch.id)
+  const index = nodes.findIndex((candidate) => candidate.id === patch.id);
   if (index === -1) {
-    return nodes
+    return nodes;
   }
 
-  const next = nodes.slice()
-  next[index] = { ...nodes[index], ...patch.changes, updatedAt: patch.updatedAt }
-  return next
+  const next = nodes.slice();
+  next[index] = { ...nodes[index], ...patch.changes, updatedAt: patch.updatedAt };
+  return next;
 }

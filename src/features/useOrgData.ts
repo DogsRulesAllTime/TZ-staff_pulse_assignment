@@ -1,25 +1,25 @@
-import { useMemo, useRef } from 'react'
-import { useOrgTreeQuery } from '@/data/cache'
-import { aggregateForest, recomputeBranch, type Aggregates } from '@/domain/aggregation'
-import { buildForest, DataError, type Forest } from '@/domain/tree'
-import type { OrgNode } from '@/data/schema'
-import type { AppliedPatch } from './useSsePatches'
-import type { ChangedCell } from './useCellFlash'
+import { useMemo, useRef } from 'react';
+import { useOrgTreeQuery } from '@/data/cache';
+import { aggregateForest, recomputeBranch, type Aggregates } from '@/domain/aggregation';
+import { buildForest, DataError, type Forest } from '@/domain/tree';
+import type { OrgNode } from '@/data/schema';
+import type { AppliedPatch } from './useSsePatches';
+import type { ChangedCell } from './useCellFlash';
 
-export type OrgDataStatus = 'loading' | 'error' | 'empty' | 'ready'
+export type OrgDataStatus = 'loading' | 'error' | 'empty' | 'ready';
 
 export interface OrgData {
-  forest: Forest | undefined
+  forest: Forest | undefined;
   /** Полные агрегаты поддерева каждого узла; undefined до 'ready'. */
-  aggregates: Map<string, Aggregates> | undefined
-  status: OrgDataStatus
-  refetch: () => void
+  aggregates: Map<string, Aggregates> | undefined;
+  status: OrgDataStatus;
+  refetch: () => void;
   /**
    * Ячейки (узел + числовое поле агрегатов), чьё ЗНАЧЕНИЕ изменилось из-за
    * последнего SSE-патча: patched-узел + предки, у которых дифф нашёл расхождение.
    * Пусто после полной загрузки/refetch'а — fade-out только для патчей (Task 8).
    */
-  changedCells: readonly ChangedCell[]
+  changedCells: readonly ChangedCell[];
 }
 
 /**
@@ -28,11 +28,11 @@ export interface OrgData {
  * (0 = патчей не было). forest — лес, на котором построены aggregates.
  */
 interface AggregateCache {
-  data: readonly OrgNode[] | undefined
-  seq: number
-  forest: Forest | undefined
-  aggregates: Map<string, Aggregates> | undefined
-  changedCells: readonly ChangedCell[]
+  data: readonly OrgNode[] | undefined;
+  seq: number;
+  forest: Forest | undefined;
+  aggregates: Map<string, Aggregates> | undefined;
+  changedCells: readonly ChangedCell[];
 }
 
 /**
@@ -47,13 +47,13 @@ function snapshotAncestry(
   aggregates: Map<string, Aggregates>,
   nodeId: string,
 ): [string, Aggregates | undefined][] {
-  const snapshot: [string, Aggregates | undefined][] = []
-  let cursor: string | null = nodeId
+  const snapshot: [string, Aggregates | undefined][] = [];
+  let cursor: string | null = nodeId;
   while (cursor !== null) {
-    snapshot.push([cursor, aggregates.get(cursor)])
-    cursor = forest.parentOf.get(cursor) ?? null
+    snapshot.push([cursor, aggregates.get(cursor)]);
+    cursor = forest.parentOf.get(cursor) ?? null;
   }
-  return snapshot
+  return snapshot;
 }
 
 /** Дифф «значение изменилось» по трём числовым полям агрегатов. */
@@ -61,21 +61,21 @@ function diffChangedCells(
   snapshot: readonly [string, Aggregates | undefined][],
   aggregates: Map<string, Aggregates>,
 ): ChangedCell[] {
-  const changed: ChangedCell[] = []
+  const changed: ChangedCell[] = [];
   for (const [nodeId, before] of snapshot) {
-    const after = aggregates.get(nodeId)
-    if (!before || !after) continue
+    const after = aggregates.get(nodeId);
+    if (!before || !after) continue;
     if (before.totalHeadcount !== after.totalHeadcount) {
-      changed.push({ nodeId, field: 'totalHeadcount' })
+      changed.push({ nodeId, field: 'totalHeadcount' });
     }
     if (before.totalBudget !== after.totalBudget) {
-      changed.push({ nodeId, field: 'totalBudget' })
+      changed.push({ nodeId, field: 'totalBudget' });
     }
     if (before.weightedPerformance !== after.weightedPerformance) {
-      changed.push({ nodeId, field: 'weightedPerformance' })
+      changed.push({ nodeId, field: 'weightedPerformance' });
     }
   }
-  return changed
+  return changed;
 }
 
 /**
@@ -101,14 +101,14 @@ function diffChangedCells(
  * поэтому хук не создаёт собственный EventSource.
  */
 export function useOrgData(lastPatch?: AppliedPatch | null): OrgData {
-  const query = useOrgTreeQuery()
+  const query = useOrgTreeQuery();
   const cacheRef = useRef<AggregateCache>({
     data: undefined,
     seq: 0,
     forest: undefined,
     aggregates: undefined,
     changedCells: [],
-  })
+  });
 
   // `buildForest` validates the payload and throws `DataError` on a dangling
   // parentId or a cycle. The result is memoized (no recompute per render) and
@@ -118,19 +118,25 @@ export function useOrgData(lastPatch?: AppliedPatch | null): OrgData {
   // (query.data, lastPatch.seq) и идемпотентен при повторном вызове useMemo
   // (StrictMode / прерванный рендер возвращает кеш как есть).
   const build = useMemo((): {
-    forest: Forest | undefined
-    aggregates: Map<string, Aggregates> | undefined
-    changedCells: readonly ChangedCell[]
-    error: DataError | undefined
+    forest: Forest | undefined;
+    aggregates: Map<string, Aggregates> | undefined;
+    changedCells: readonly ChangedCell[];
+    error: DataError | undefined;
   } => {
-    const prev = cacheRef.current
+    const prev = cacheRef.current;
     if (query.data === undefined) {
-      cacheRef.current = { ...prev, data: undefined, forest: undefined, aggregates: undefined, changedCells: [] }
-      return { forest: undefined, aggregates: undefined, changedCells: [], error: undefined }
+      cacheRef.current = {
+        ...prev,
+        data: undefined,
+        forest: undefined,
+        aggregates: undefined,
+        changedCells: [],
+      };
+      return { forest: undefined, aggregates: undefined, changedCells: [], error: undefined };
     }
     try {
-      const forest = buildForest(query.data)
-      const patch = lastPatch ?? null
+      const forest = buildForest(query.data);
+      const patch = lastPatch ?? null;
       const patchApplies =
         patch !== null &&
         patch.seq !== prev.seq &&
@@ -139,43 +145,54 @@ export function useOrgData(lastPatch?: AppliedPatch | null): OrgData {
         // Патч не меняет структуру (applyPatch правит поля существующего узла):
         // другая длина массива — структурное изменение → полный пересчёт.
         prev.data.length === query.data.length &&
-        forest.byId.has(patch.id)
+        forest.byId.has(patch.id);
       if (patchApplies) {
-        const aggregates = prev.aggregates!
-        const snapshot = snapshotAncestry(forest, aggregates, patch.id)
-        recomputeBranch(forest, aggregates, [patch.id])
-        const changedCells = diffChangedCells(snapshot, aggregates)
-        cacheRef.current = { data: query.data, seq: patch.seq, forest, aggregates, changedCells }
-        return { forest, aggregates, changedCells, error: undefined }
+        const aggregates = prev.aggregates!;
+        const snapshot = snapshotAncestry(forest, aggregates, patch.id);
+        recomputeBranch(forest, aggregates, [patch.id]);
+        const changedCells = diffChangedCells(snapshot, aggregates);
+        cacheRef.current = { data: query.data, seq: patch.seq, forest, aggregates, changedCells };
+        return { forest, aggregates, changedCells, error: undefined };
       }
       if (prev.aggregates !== undefined && prev.data === query.data) {
         // Рендер без новых данных — кеш валиден (identity сохранена).
-        cacheRef.current = { ...prev, forest }
-        return { forest, aggregates: prev.aggregates, changedCells: prev.changedCells, error: undefined }
+        cacheRef.current = { ...prev, forest };
+        return {
+          forest,
+          aggregates: prev.aggregates,
+          changedCells: prev.changedCells,
+          error: undefined,
+        };
       }
-      const aggregates = aggregateForest(forest)
+      const aggregates = aggregateForest(forest);
       cacheRef.current = {
         data: query.data,
         seq: patch?.seq ?? prev.seq,
         forest,
         aggregates,
         changedCells: [],
-      }
-      return { forest, aggregates, changedCells: [], error: undefined }
+      };
+      return { forest, aggregates, changedCells: [], error: undefined };
     } catch (error) {
-      if (!(error instanceof DataError)) throw error
-      cacheRef.current = { ...prev, data: query.data, forest: undefined, aggregates: undefined, changedCells: [] }
-      return { forest: undefined, aggregates: undefined, changedCells: [], error }
+      if (!(error instanceof DataError)) throw error;
+      cacheRef.current = {
+        ...prev,
+        data: query.data,
+        forest: undefined,
+        aggregates: undefined,
+        changedCells: [],
+      };
+      return { forest: undefined, aggregates: undefined, changedCells: [], error };
     }
-  }, [query.data, lastPatch])
+  }, [query.data, lastPatch]);
 
-  let status: OrgDataStatus
+  let status: OrgDataStatus;
   if (query.isError || build.error !== undefined) {
-    status = 'error'
+    status = 'error';
   } else if (query.isPending || query.data === undefined) {
-    status = 'loading'
+    status = 'loading';
   } else {
-    status = query.data.length === 0 ? 'empty' : 'ready'
+    status = query.data.length === 0 ? 'empty' : 'ready';
   }
 
   return {
@@ -184,5 +201,5 @@ export function useOrgData(lastPatch?: AppliedPatch | null): OrgData {
     changedCells: build.changedCells,
     status,
     refetch: query.refetch,
-  }
+  };
 }

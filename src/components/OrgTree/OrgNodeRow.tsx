@@ -1,13 +1,13 @@
-import styled from 'styled-components'
-import type { TreeNode } from '@/domain/tree'
-import { PerformanceDot } from '@/components/shared/PerformanceDot'
+import styled from 'styled-components';
+import type { TreeNode } from '@/domain/tree';
+import { PerformanceDot } from '@/components/shared/PerformanceDot';
 
 export interface OrgNodeRowProps {
-  node: TreeNode
-  expanded: ReadonlySet<string>
-  onToggle: (id: string) => void
+  node: TreeNode;
+  expanded: ReadonlySet<string>;
+  onToggle: (id: string) => void;
   /** Выделенный узел (например, кликом по строке таблицы); подсвечивается. */
-  selectedId: string | null
+  selectedId: string | null;
 }
 
 const Row = styled.div<{ $selected: boolean }>`
@@ -16,9 +16,8 @@ const Row = styled.div<{ $selected: boolean }>`
   gap: ${({ theme }) => theme.spacing.sm};
   padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.sm}`};
   border-radius: ${({ theme }) => theme.radii.sm};
-  background: ${({ $selected, theme }) =>
-    $selected ? `${theme.colors.text}1f` : 'transparent'};
-`
+  background: ${({ $selected, theme }) => ($selected ? `${theme.colors.text}1f` : 'transparent')};
+`;
 
 const Chevron = styled.button<{ $open: boolean }>`
   flex-shrink: 0;
@@ -40,26 +39,26 @@ const Chevron = styled.button<{ $open: boolean }>`
   @media ${({ theme }) => theme.motion} {
     transition: none;
   }
-`
+`;
 
 const ChevronSpacer = styled.span`
   flex-shrink: 0;
   width: 20px;
   height: 20px;
-`
+`;
 
 const Name = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-`
+`;
 
 const Headcount = styled.span`
   margin-left: auto;
   flex-shrink: 0;
   color: ${({ theme }) => theme.colors.textMuted};
   font-size: 0.8125rem;
-`
+`;
 
 const Children = styled.ul`
   margin: 0;
@@ -69,7 +68,7 @@ const Children = styled.ul`
      0fr сжаться до нуля, overflow: hidden — обрезать содержимое при анимации. */
   min-height: 0;
   overflow: hidden;
-`
+`;
 
 /**
  * Reveal-обёртка анимации раскрытия (Task 9). Выбор подхода: grid-rows, а не
@@ -88,11 +87,11 @@ const Reveal = styled.div<{ $open: boolean }>`
   @media ${({ theme }) => theme.motion} {
     transition: none;
   }
-`
+`;
 
 export function OrgNodeRow({ node, expanded, onToggle, selectedId }: OrgNodeRowProps) {
-  const hasChildren = node.children.length > 0
-  const isOpen = expanded.has(node.id)
+  const hasChildren = node.children.length > 0;
+  const isOpen = expanded.has(node.id);
 
   return (
     <li
@@ -133,5 +132,5 @@ export function OrgNodeRow({ node, expanded, onToggle, selectedId }: OrgNodeRowP
         </Reveal>
       )}
     </li>
-  )
+  );
 }

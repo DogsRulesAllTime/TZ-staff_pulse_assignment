@@ -8,12 +8,12 @@
  * relative to freshly patched data), and every ancestor up to the roots.
  * Untouched entries keep their object identity, so consumers can memoize on it.
  */
-import type { Forest, TreeNode } from './tree'
+import type { Forest, TreeNode } from './tree';
 
 export interface Aggregates {
-  totalHeadcount: number
-  totalBudget: number
-  weightedPerformance: number
+  totalHeadcount: number;
+  totalBudget: number;
+  weightedPerformance: number;
 }
 
 /**
@@ -24,21 +24,21 @@ export interface Aggregates {
  * instead of NaN.
  */
 function computeAggregates(node: TreeNode, children: readonly Aggregates[]): Aggregates {
-  let totalHeadcount = node.headcount
-  let totalBudget = node.budget
-  let weightedPerfSum = node.headcount * node.performance
+  let totalHeadcount = node.headcount;
+  let totalBudget = node.budget;
+  let weightedPerfSum = node.headcount * node.performance;
 
   for (const child of children) {
-    totalHeadcount += child.totalHeadcount
-    totalBudget += child.totalBudget
-    weightedPerfSum += child.weightedPerformance * child.totalHeadcount
+    totalHeadcount += child.totalHeadcount;
+    totalBudget += child.totalBudget;
+    weightedPerfSum += child.weightedPerformance * child.totalHeadcount;
   }
 
   return {
     totalHeadcount,
     totalBudget,
     weightedPerformance: totalHeadcount === 0 ? 0 : weightedPerfSum / totalHeadcount,
-  }
+  };
 }
 
 /**
@@ -46,19 +46,19 @@ function computeAggregates(node: TreeNode, children: readonly Aggregates[]): Agg
  * Islands not reachable from `forest.roots` get no entry (graceful degradation).
  */
 export function aggregateForest(forest: Forest): Map<string, Aggregates> {
-  const aggregates = new Map<string, Aggregates>()
+  const aggregates = new Map<string, Aggregates>();
 
   const visit = (node: TreeNode): Aggregates => {
-    const childAggregates = node.children.map(visit)
-    const aggregate = computeAggregates(node, childAggregates)
-    aggregates.set(node.id, aggregate)
-    return aggregate
-  }
+    const childAggregates = node.children.map(visit);
+    const aggregate = computeAggregates(node, childAggregates);
+    aggregates.set(node.id, aggregate);
+    return aggregate;
+  };
   for (const root of forest.roots) {
-    visit(root)
+    visit(root);
   }
 
-  return aggregates
+  return aggregates;
 }
 
 /**
@@ -77,45 +77,43 @@ export function recomputeBranch(
   aggregates: Map<string, Aggregates>,
   changedNodeIds: readonly string[],
 ): Map<string, Aggregates> {
-  const dirty = new Set<string>()
+  const dirty = new Set<string>();
 
   for (const id of changedNodeIds) {
-    const start = forest.byId.get(id)
+    const start = forest.byId.get(id);
     if (!start) {
-      continue
+      continue;
     }
     // The changed node and everything below it.
-    const stack: TreeNode[] = [start]
+    const stack: TreeNode[] = [start];
     while (stack.length > 0) {
-      const current = stack.pop()!
-      dirty.add(current.id)
+      const current = stack.pop()!;
+      dirty.add(current.id);
       for (const child of current.children) {
-        stack.push(child)
+        stack.push(child);
       }
     }
     // …and every ancestor up to the root.
-    let cursor: string | null = id
+    let cursor: string | null = id;
     while (cursor !== null) {
-      dirty.add(cursor)
-      cursor = forest.parentOf.get(cursor) ?? null
+      dirty.add(cursor);
+      cursor = forest.parentOf.get(cursor) ?? null;
     }
   }
 
   // Deepest first: children are recomputed before their parents read them.
-  const ordered = [...dirty]
-    .map((id) => forest.byId.get(id)!)
-    .sort((a, b) => b.depth - a.depth)
+  const ordered = [...dirty].map((id) => forest.byId.get(id)!).sort((a, b) => b.depth - a.depth);
 
   for (const node of ordered) {
-    const childAggregates: Aggregates[] = []
+    const childAggregates: Aggregates[] = [];
     for (const child of node.children) {
-      const cached = aggregates.get(child.id)
+      const cached = aggregates.get(child.id);
       if (cached) {
-        childAggregates.push(cached)
+        childAggregates.push(cached);
       }
     }
-    aggregates.set(node.id, computeAggregates(node, childAggregates))
+    aggregates.set(node.id, computeAggregates(node, childAggregates));
   }
 
-  return aggregates
+  return aggregates;
 }

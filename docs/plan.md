@@ -34,12 +34,14 @@
 ### Task 1: Scaffold и инфраструктура
 
 **Files:**
+
 - Create: `package.json`, `vite.config.ts`, `tsconfig.json`, `tsconfig.node.json`, `.gitignore`, `.env.example`
 - Create: `src/main.tsx`, `src/app/App.tsx`, `src/app/theme.ts`
 - Create: `vitest.config.ts`, `src/test/setup.ts`
 - Create: `server/index.ts`, `server/package.json` (сервер — отдельный package с `tsx` для dev)
 
 **Interfaces:**
+
 - Produces: алиас `@/` → `src/`; тему styled-components (тип `Theme` экспортируется из `@/app/theme`); точки входа `pnpm dev` (concurrently: клиент+сервер), `pnpm test`.
 
 - [x] **Step 1:** `pnpm create vite@latest . --template react-ts` внутри репозитория (плоско, не в подпапке клиента), затем добавить зависимости: `pnpm add @tanstack/react-query zod styled-components @types/styled-components` и dev: `vitest @testing-library/react @testing-library/jest-dom jsdom express cors tsx concurrently`.
@@ -52,10 +54,12 @@
 ### Task 2: Mock-сервер
 
 **Files:**
+
 - Create: `server/index.ts`, `server/org-data.ts`, `server/mutations.ts`, `server/sse.ts`
 - Test: `server/org-data.test.ts`
 
 **Interfaces:**
+
 - Produces: `GET /api/org-tree` → `OrgNode[]` (≥40 узлов, 3 уровня: 4 дивизиона → 2–3 отдела → 2–3 команды); `GET /api/events` → SSE `event: patch` c payload `{ id, changes, updatedAt }`.
 
 - [x] **Step 1:** тест-фабрика данных: `buildOrgTree()` возвращает ≥40 узлов; тест проверяет: `nodes.length >= 40`, `depths.max >= 2`, `parentId` ссылается только на существующие id, корней ≥ 1. Запустить: `pnpm vitest run server/org-data.test.ts` → FAIL.
@@ -67,10 +71,12 @@
 ### Task 3: Слой data — схема, API, кэш
 
 **Files:**
+
 - Create: `src/data/schema.ts`, `src/data/api.ts`, `src/data/cache.ts`
 - Test: `src/data/schema.test.ts`
 
 **Interfaces:**
+
 - Produces: тип `OrgNode` (из zod-схемы `z.infer`); `fetchOrgTree(): Promise<OrgNode[]>` (бросает `ApiError` на невалидный ответ); `QueryClient` с ключом `['org-tree']`.
 
 - [x] **Step 1:** тест схемы (сначала): валидный узел проходит; невалидный (performance 150, отрицательный headcount, отсутствует name) — reject; пустой массив — валиден; невалидный parentId-референс на уровне forest-валидации (`validateForest`) — reject. Запустить → FAIL.
@@ -98,10 +104,12 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 ### Task 4: Дерево + состояния
 
 **Files:**
+
 - Create: `src/domain/tree.ts`, `src/features/useOrgData.ts`, `src/components/OrgDashboard.tsx`, `src/components/OrgTree/OrgTree.tsx`, `src/components/OrgTree/OrgNodeRow.tsx`, `src/components/shared/States.tsx`, `src/components/shared/PerformanceDot.tsx`
 - Test: `src/domain/tree.test.ts`, `src/components/OrgTree/OrgTree.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `useOrgTreeQuery`, типы `OrgNode`, `Theme`.
 - Produces: `buildForest(nodes: OrgNode[]): Forest` (см. data-model.md); `useOrgData(): { forest, aggregates?, status: 'loading'|'error'|'empty'|'ready', refetch }`; `<OrgTree forest expanded onToggle/>`.
 
@@ -114,17 +122,19 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 
 ---
 
-
 > **Статус:** этап 01 завершён (коммиты 78d6a4a..50eb50d, тег `step/1` на 8e1b7e3). См. `docs/PROGRESS.md`.
+
 ## Этап 02 — CORE (тег `step/2`)
 
 ### Task 5: Агрегация (unit-тест обязателен по заданию)
 
 **Files:**
+
 - Create: `src/domain/aggregation.ts`
 - Test: `src/domain/aggregation.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Forest`, `TreeNode`.
 - Produces: `aggregateForest(forest): Map<string, Aggregates>`; `recomputeBranch(forest, aggregates, changedIds: string[]): Map<string, Aggregates>` (in-place обновление кэша по ветке до корней); тип `Aggregates { totalHeadcount; totalBudget; weightedPerformance }`.
 
@@ -133,17 +143,19 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
   - дивизион: `totalHeadcount = 20`, `totalBudget` = сумма всех, `weightedPerformance = (80·10 + 60·4 + 50·6)/20 = 67`;
   - `recomputeBranch` после патча команды 12 чел./perf 70 даёт те же числа, что полный `aggregateForest` заново (инвариант эквивалентности);
   - пустой лес → пустая Map.
-  Запустить → FAIL.
+    Запустить → FAIL.
 - [x] **Step 2:** реализация — один post-order DFS; `weightedPerformance` аккумулируется парой `(headcountWeightedPerfSum, subtreeHeadcount)`; `recomputeBranch` — подъём по `parentOf`. PASS.
 - [x] **Step 3:** Commit: `git commit -m "feat(domain): memoized subtree aggregation with branch recompute"`.
 
 ### Task 6: Таблица
 
 **Files:**
+
 - Create: `src/features/useTableSort.ts`, `src/features/useDebouncedValue.ts`, `src/domain/filter.ts`, `src/domain/format.ts`, `src/components/MetricsTable/MetricsTable.tsx`, `src/components/ViewToggle.tsx`, `src/features/ui-state.tsx`
 - Test: `src/domain/filter.test.ts`, `src/domain/format.test.ts`, `src/features/useTableSort.test.ts`
 
 **Interfaces:**
+
 - Consumes: `useOrgData`, `aggregates`, `TreeNode`, `Aggregates`.
 - Produces: `useUiState()` (контекст): `{ view: 'tree'|'table', setView, selectedId, setSelectedId, nameFilter, setNameFilter }`; `useTableSort<T>(rows, initial)` → `{ sorted, sort, toggleSort }` (`sort: {key, dir: 'asc'|'desc'}`); `formatBudget(n): string`; `matchesFilter(nodes, query)`.
 
@@ -156,18 +168,20 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 
 ---
 
-
 > **Статус:** этап 02 завершён (коммиты e0580b8..eeecdc6, тег `step/2`). Агрегация: 16 unit-тестов; таблица: сортировка/фильтр 250мс/связка с деревом/keyboard-reachable строки. См. `docs/PROGRESS.md`.
+
 ## Этап 03 — POLISH (тег `step/3`)
 
 ### Task 7: SSE-патчи
 
 **Files:**
+
 - Create: `src/data/sse.ts`, `src/domain/patch.ts`
 - Modify: `src/features/useOrgData.ts`
 - Test: `src/domain/patch.test.ts`, `src/data/sse.test.ts`
 
 **Interfaces:**
+
 - Consumes: `patchSchema` (новый в `schema.ts`), `queryClient`, `recomputeBranch`, `parentOf`.
 - Produces: `applyPatch(nodes: OrgNode[], patch: Patch): OrgNode[]` (чистая, структурная замена узла); `useSsePatches(): { status: 'connecting'|'online'|'offline' }`; hook устанавливает `setQueryData(ORG_TREE_KEY, next)` и возвращает затронутые id для fade-out.
 
@@ -180,10 +194,12 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 ### Task 8: Инкрементальная агрегация + fade-out
 
 **Files:**
+
 - Modify: `src/features/useOrgData.ts`, `src/components/MetricsTable/MetricsTable.tsx`
 - Test: `src/features/useOrgData.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `recomputeBranch`, `aggregates` Map.
 - Produces: агрегаты, пересчитанные только по затронутой ветке; CSS-анимация `fadeOutCell` 1.5с на обновлённых ячейках.
 
@@ -195,10 +211,12 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 ### Task 9: Keyboard navigation + анимация дерева
 
 **Files:**
+
 - Modify: `src/components/MetricsTable/MetricsTable.tsx`, `src/components/OrgTree/*`
 - Test: `src/components/MetricsTable/MetricsTable.test.tsx`
 
 **Interfaces:**
+
 - Consumes: выделение из `ui-state`.
 - Produces: таблица с `role="grid"`, фокус-менеджмент строк/ячеек.
 
@@ -208,17 +226,19 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 
 ---
 
-
 > **Статус:** этап 03 завершён (коммиты fb00203..bdcf723, тег `step/3`). SSE-патчи без рефетча, fade-out 1.5с, инкрементальная агрегация, backoff 1→16с, keyboard nav, grid-rows анимация с reduced-motion. См. `docs/PROGRESS.md`.
+
 ## Этап 04 — BONUS (тег `step/4`)
 
 ### Task 10: Качество кода — ESLint 9 (flat) + Prettier + pre-commit
 
 **Files:**
+
 - Create: `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, `.husky/pre-commit`, `.lintstagedrc.json`
 - Modify: `package.json` (scripts: `lint`, `lint:fix`, `format`, `format:check`; devDeps)
 
 **Interfaces:**
+
 - Produces: `pnpm lint` (0 warnings policy), `pnpm format:check`; pre-commit hook прогоняет lint-staged (eslint --fix + prettier --write) на staged-файлах.
 
 - [ ] **Step 1:** Установить: `eslint@9`, `typescript-eslint` (плоский конфиг), `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, `eslint-plugin-import` (опционально), `prettier`, `husky`, `lint-staged`.
@@ -228,14 +248,15 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 - [ ] **Step 5:** husky pre-commit + lint-staged: `*.{ts,tsx}` → eslint --fix, prettier --write. Проверить: коммит с нарушением формата должен автопоправляться.
 - [ ] **Step 6:** Обновить README (разработка: линт/формат). Commit: `chore(quality): eslint 9 flat config, prettier, husky pre-commit`.
 
-
 ### Task 11: Docker + Nginx + бюджет бандла
 
 **Files:**
+
 - Create: `Dockerfile.client`, `Dockerfile.server`, `docker-compose.yml`, `nginx/default.conf`, `.env.example`, `scripts/check-size.mjs`
 - Modify: `package.json` (скрипты)
 
 **Interfaces:**
+
 - Produces: `docker compose up --build` → nginx :8080 (статика + `/api` прокси); `pnpm check:size` → падает при >200 КБ gzip.
 
 - [ ] **Step 1:** `scripts/check-size.mjs`: gzip-размер `dist/assets/*.js` ≤ 200_000 байт; подключить в `build`-пайплайн. Зафиксировать текущий размер в PROGRESS.
@@ -247,11 +268,13 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 ### Task 12: AI-поиск
 
 **Files:**
+
 - Create: `src/domain/search.ts`, `src/components/AiSearchBar.tsx`
 - Modify: `src/components/OrgDashboard.tsx`
 - Test: `src/domain/search.test.ts`
 
 **Interfaces:**
+
 - Consumes: `OrgNode[]`, `matchesFilter`.
 - Produces: `parseNaturalQuery(q: string, nodes: OrgNode[]): StructuredFilter | null`; `StructuredFilter = { nameSubstring?: string; minHeadcount?: number; minBudget?: number; minPerformance?: number }`.
 
@@ -262,6 +285,7 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 ### Task 13: Финализация
 
 **Files:**
+
 - Modify: `README.md`, `docs/ai.md`, `docs/PROGRESS.md`
 - Create: скриншоты `docs/screenshots/*.png` (или GIF)
 

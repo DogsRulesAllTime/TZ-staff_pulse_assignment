@@ -6,11 +6,11 @@
  * как подстроку без учёта регистра. Агрегаты при фильтре НЕ пересчитываются —
  * показываются полные агрегаты поддерева узла.
  */
-import type { TreeNode } from './tree'
+import type { TreeNode } from './tree';
 
 /** Substring + case-insensitive match по одному имени. */
 function nameMatches(name: string, query: string): boolean {
-  return name.toLowerCase().includes(query)
+  return name.toLowerCase().includes(query);
 }
 
 /**
@@ -19,15 +19,15 @@ function nameMatches(name: string, query: string): boolean {
  * сравнения (все узлы совпадают).
  */
 export function nodeMatchesFilter(node: TreeNode, query: string): boolean {
-  const trimmed = query.trim()
+  const trimmed = query.trim();
   if (trimmed === '') {
-    return true
+    return true;
   }
-  const needle = trimmed.toLowerCase()
+  const needle = trimmed.toLowerCase();
   if (nameMatches(node.name, needle)) {
-    return true
+    return true;
   }
-  return node.children.some((child) => nodeMatchesFilter(child, needle))
+  return node.children.some((child) => nodeMatchesFilter(child, needle));
 }
 
 /**
@@ -35,5 +35,5 @@ export function nodeMatchesFilter(node: TreeNode, query: string): boolean {
  * содержит совпадение по имени. Порядок входных узлов сохраняется.
  */
 export function matchesFilter<T extends TreeNode>(nodes: readonly T[], query: string): T[] {
-  return nodes.filter((node) => nodeMatchesFilter(node, query))
+  return nodes.filter((node) => nodeMatchesFilter(node, query));
 }

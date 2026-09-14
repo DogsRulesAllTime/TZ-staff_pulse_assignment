@@ -1,6 +1,6 @@
-import type { TreeNode, TreeNodeInput } from '@/domain/tree'
+import type { TreeNode, TreeNodeInput } from '@/domain/tree';
 
-type NodeInput = Omit<TreeNode, 'children' | 'depth'>
+type NodeInput = Omit<TreeNode, 'children' | 'depth'>;
 
 /**
  * Единственный тест-фабричный хелпер узла орг-структуры (вынесен из
@@ -17,7 +17,7 @@ export function node(partial: Partial<NodeInput> & Pick<NodeInput, 'id'>): TreeN
     performance: 80,
     updatedAt: '2025-01-01T00:00:00.000Z',
     ...partial,
-  }
+  };
 }
 
-export type { NodeInput, TreeNodeInput }
+export type { NodeInput, TreeNodeInput };

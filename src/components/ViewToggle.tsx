@@ -1,5 +1,5 @@
-import styled from 'styled-components'
-import { useUiState, type DashboardView } from '@/features/ui-state'
+import styled from 'styled-components';
+import { useUiState, type DashboardView } from '@/features/ui-state';
 
 const Group = styled.div`
   display: inline-flex;
@@ -13,7 +13,7 @@ const Group = styled.div`
   @media (min-width: 1280px) {
     display: none;
   }
-`
+`;
 
 const Button = styled.button<{ $active: boolean }>`
   padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.md}`};
@@ -27,15 +27,15 @@ const Button = styled.button<{ $active: boolean }>`
   &:hover {
     color: ${({ theme }) => theme.colors.text};
   }
-`
+`;
 
 export function ViewToggle() {
-  const { view, setView } = useUiState()
+  const { view, setView } = useUiState();
 
   const options: { value: DashboardView; label: string }[] = [
     { value: 'tree', label: 'Дерево' },
     { value: 'table', label: 'Таблица' },
-  ]
+  ];
 
   return (
     <Group role="group" aria-label="Переключение вида">
@@ -51,5 +51,5 @@ export function ViewToggle() {
         </Button>
       ))}
     </Group>
-  )
+  );
 }

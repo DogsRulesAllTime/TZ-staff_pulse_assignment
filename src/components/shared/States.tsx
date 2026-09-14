@@ -1,16 +1,16 @@
-import styled, { keyframes } from 'styled-components'
+import styled, { keyframes } from 'styled-components';
 
 const pulse = keyframes`
   from { opacity: 1; }
   to { opacity: 0.4; }
-`
+`;
 
 const SkeletonStack = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.sm};
   padding: ${({ theme }) => theme.spacing.lg};
-`
+`;
 
 const SkeletonBar = styled.div<{ $width: string }>`
   height: 20px;
@@ -22,7 +22,7 @@ const SkeletonBar = styled.div<{ $width: string }>`
   @media ${({ theme }) => theme.motion} {
     animation: none;
   }
-`
+`;
 
 export function LoadingSkeleton() {
   return (
@@ -33,7 +33,7 @@ export function LoadingSkeleton() {
       <SkeletonBar $width="70%" />
       <SkeletonBar $width="50%" />
     </SkeletonStack>
-  )
+  );
 }
 
 const StateWrapper = styled.div`
@@ -43,7 +43,7 @@ const StateWrapper = styled.div`
   gap: ${({ theme }) => theme.spacing.md};
   padding: ${({ theme }) => theme.spacing.xl};
   color: ${({ theme }) => theme.colors.textMuted};
-`
+`;
 
 const RetryButton = styled.button`
   padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.md}`};
@@ -57,10 +57,10 @@ const RetryButton = styled.button`
   &:hover {
     border-color: ${({ theme }) => theme.colors.textMuted};
   }
-`
+`;
 
 export interface ErrorStateProps {
-  onRetry: () => void
+  onRetry: () => void;
 }
 
 export function ErrorState({ onRetry }: ErrorStateProps) {
@@ -69,7 +69,7 @@ export function ErrorState({ onRetry }: ErrorStateProps) {
       <span>Не удалось загрузить данные организации</span>
       <RetryButton onClick={onRetry}>Повторить</RetryButton>
     </StateWrapper>
-  )
+  );
 }
 
 export function EmptyState() {
@@ -77,5 +77,5 @@ export function EmptyState() {
     <StateWrapper>
       <span>Нет данных</span>
     </StateWrapper>
-  )
+  );
 }

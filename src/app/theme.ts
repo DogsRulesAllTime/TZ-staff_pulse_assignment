@@ -29,9 +29,9 @@ export const theme = {
     round: '9999px',
   },
   motion: '(prefers-reduced-motion: reduce)',
-} as const
+} as const;
 
-export type Theme = typeof theme
+export type Theme = typeof theme;
 
 declare module 'styled-components' {
   export interface DefaultTheme extends Theme {}

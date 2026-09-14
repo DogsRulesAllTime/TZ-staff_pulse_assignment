@@ -1,50 +1,46 @@
-import styled, { keyframes } from 'styled-components'
-import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
-import type { SortState } from '@/features/useTableSort'
-import { formatBudget, formatPerformance } from '@/domain/format'
-import { cellFlashKey, type FlashField } from '@/features/useCellFlash'
-import { PerformanceDot } from '@/components/shared/PerformanceDot'
+import styled, { keyframes } from 'styled-components';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type { SortState } from '@/features/useTableSort';
+import { formatBudget, formatPerformance } from '@/domain/format';
+import { cellFlashKey, type FlashField } from '@/features/useCellFlash';
+import { PerformanceDot } from '@/components/shared/PerformanceDot';
 
 /** Плоская строка таблицы: узел + агрегаты его полного поддерева. */
 export interface MetricRow {
-  id: string
-  name: string
+  id: string;
+  name: string;
   /** 0 = дивизион, 1 = отдел, 2 = команда. */
-  depth: number
-  totalHeadcount: number
-  totalBudget: number
-  weightedPerformance: number
+  depth: number;
+  totalHeadcount: number;
+  totalBudget: number;
+  weightedPerformance: number;
 }
 
 export type MetricColumn =
-  | 'name'
-  | 'depth'
-  | 'totalHeadcount'
-  | 'totalBudget'
-  | 'weightedPerformance'
+  'name' | 'depth' | 'totalHeadcount' | 'totalBudget' | 'weightedPerformance';
 
 export interface MetricsTableProps {
   /** Уже отфильтрованные и отсортированные строки (sort/filter живут у вызывающего). */
-  rows: readonly MetricRow[]
-  sort: SortState<MetricColumn>
-  onSortToggle: (key: MetricColumn) => void
-  selectedId: string | null
-  onSelect: (id: string) => void
-  filter: string
-  onFilterChange: (value: string) => void
+  rows: readonly MetricRow[];
+  sort: SortState<MetricColumn>;
+  onSortToggle: (key: MetricColumn) => void;
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  filter: string;
+  onFilterChange: (value: string) => void;
   /**
    * Fade-out (Task 8): `cellFlashKey → счётчик вспышек` из useCellFlash.
    * Ключ есть → ячейка мигает; чётность счётчика выбирает одну из двух
    * одинаковых keyframes-анимаций, чтобы повторный патч перезапускал
    * анимацию, пока предыдущая не истекла.
    */
-  flashingCells?: ReadonlyMap<string, number>
+  flashingCells?: ReadonlyMap<string, number>;
 }
 
-const LEVEL_LABELS = ['Дивизион', 'Отдел', 'Команда'] as const
+const LEVEL_LABELS = ['Дивизион', 'Отдел', 'Команда'] as const;
 
 export function levelLabel(depth: number): string {
-  return LEVEL_LABELS[depth] ?? `Уровень ${depth}`
+  return LEVEL_LABELS[depth] ?? `Уровень ${depth}`;
 }
 
 const COLUMNS: { key: MetricColumn; label: string; numeric?: boolean }[] = [
@@ -53,14 +49,14 @@ const COLUMNS: { key: MetricColumn; label: string; numeric?: boolean }[] = [
   { key: 'totalHeadcount', label: 'Всего сотрудников', numeric: true },
   { key: 'totalBudget', label: 'Бюджет суммарный', numeric: true },
   { key: 'weightedPerformance', label: 'Средняя эффективность', numeric: true },
-]
+];
 
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.sm};
   min-width: 0;
-`
+`;
 
 const FilterInput = styled.input`
   padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.md}`};
@@ -74,7 +70,7 @@ const FilterInput = styled.input`
     outline: 2px solid ${({ theme }) => theme.colors.text};
     outline-offset: 1px;
   }
-`
+`;
 
 const Table = styled.table`
   width: 100%;
@@ -82,7 +78,7 @@ const Table = styled.table`
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.textMuted}33;
   border-radius: ${({ theme }) => theme.radii.md};
-`
+`;
 
 const Th = styled.th`
   padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.md}`};
@@ -92,11 +88,11 @@ const Th = styled.th`
   font-weight: 600;
   color: ${({ theme }) => theme.colors.textMuted};
   white-space: nowrap;
-`
+`;
 
 const ThNumeric = styled(Th)`
   text-align: right;
-`
+`;
 
 const SortButton = styled.button`
   display: inline-flex;
@@ -114,12 +110,12 @@ const SortButton = styled.button`
   &:hover {
     color: ${({ theme }) => theme.colors.text};
   }
-`
+`;
 
 const Td = styled.td`
   padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.md}`};
   border-bottom: 1px solid ${({ theme }) => theme.colors.textMuted}22;
-`
+`;
 
 /**
  * Fade-out обновлённой ячейки (бриф Task 8): opacity 1 → 0.35 → 1 за 1.5s.
@@ -137,7 +133,7 @@ const fadeOutCell = keyframes`
   to {
     opacity: 1;
   }
-`
+`;
 
 const fadeOutCellAlt = keyframes`
   from {
@@ -149,7 +145,7 @@ const fadeOutCellAlt = keyframes`
   to {
     opacity: 1;
   }
-`
+`;
 
 const TdNumeric = styled(Td)`
   text-align: right;
@@ -174,12 +170,11 @@ const TdNumeric = styled(Td)`
       animation: none;
     }
   }
-`
+`;
 
 const Tr = styled.tr<{ $selected: boolean }>`
   cursor: pointer;
-  background: ${({ $selected, theme }) =>
-    $selected ? `${theme.colors.text}14` : 'transparent'};
+  background: ${({ $selected, theme }) => ($selected ? `${theme.colors.text}14` : 'transparent')};
 
   &:hover {
     background: ${({ theme }) => `${theme.colors.textMuted}14`};
@@ -189,30 +184,30 @@ const Tr = styled.tr<{ $selected: boolean }>`
     outline: 2px solid ${({ theme }) => theme.colors.text};
     outline-offset: -2px;
   }
-`
+`;
 
 const NameCell = styled.div`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.sm};
   min-width: 0;
-`
+`;
 
 const NameText = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-`
+`;
 
 const PerfCell = styled(NameCell)`
   justify-content: flex-end;
-`
+`;
 
 const EmptyRow = styled.td`
   padding: ${({ theme }) => theme.spacing.lg};
   text-align: center;
   color: ${({ theme }) => theme.colors.textMuted};
-`
+`;
 
 /**
  * Presentational таблица агрегатов. Фильтрация и сортировка выполняются
@@ -221,13 +216,17 @@ const EmptyRow = styled.td`
  * Fade-out (Task 8): data-changed ставится ТОЛЬКО на мигающие числовые ячейки
  * (headcount/budget/performance конкретного узла), не на строку и не на таблицу.
  */
-const NUMERIC_FIELDS: readonly FlashField[] = ['totalHeadcount', 'totalBudget', 'weightedPerformance']
+const NUMERIC_FIELDS: readonly FlashField[] = [
+  'totalHeadcount',
+  'totalBudget',
+  'weightedPerformance',
+];
 
 /**
  * Клавиши построчной навигации (Task 9). ArrowLeft/ArrowRight намеренно
  * не перехватываются (YAGNI по заданию).
  */
-const NAV_KEYS = new Set(['ArrowDown', 'ArrowUp', 'Home', 'End'])
+const NAV_KEYS = new Set(['ArrowDown', 'ArrowUp', 'Home', 'End']);
 
 /**
  * Roving-навигация по видимым строкам таблицы: ArrowUp/ArrowDown →
@@ -239,13 +238,13 @@ const NAV_KEYS = new Set(['ArrowDown', 'ArrowUp', 'Home', 'End'])
 function handleRowNavKey(event: ReactKeyboardEvent<HTMLTableRowElement>) {
   // Модификаторы (Ctrl/Meta/Alt/Shift + клавиша) — браузерные/ОС-шорткаты,
   // построчную навигацию не трогаем.
-  if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return
-  if (!NAV_KEYS.has(event.key)) return
-  const tbody = event.currentTarget.closest('tbody')
-  if (!tbody) return
-  const rowEls = Array.from(tbody.querySelectorAll<HTMLTableRowElement>('tr[data-row-id]'))
-  const current = rowEls.indexOf(event.currentTarget)
-  if (rowEls.length === 0 || current === -1) return
+  if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+  if (!NAV_KEYS.has(event.key)) return;
+  const tbody = event.currentTarget.closest('tbody');
+  if (!tbody) return;
+  const rowEls = Array.from(tbody.querySelectorAll<HTMLTableRowElement>('tr[data-row-id]'));
+  const current = rowEls.indexOf(event.currentTarget);
+  if (rowEls.length === 0 || current === -1) return;
   const next =
     event.key === 'ArrowDown'
       ? Math.min(current + 1, rowEls.length - 1)
@@ -253,11 +252,11 @@ function handleRowNavKey(event: ReactKeyboardEvent<HTMLTableRowElement>) {
         ? Math.max(current - 1, 0)
         : event.key === 'Home'
           ? 0
-          : rowEls.length - 1
-  event.preventDefault()
-  const target = rowEls[next]
-  target.focus()
-  target.scrollIntoView({ block: 'nearest' })
+          : rowEls.length - 1;
+  event.preventDefault();
+  const target = rowEls[next];
+  target.focus();
+  target.scrollIntoView({ block: 'nearest' });
 }
 
 export function MetricsTable({
@@ -271,14 +270,14 @@ export function MetricsTable({
   flashingCells,
 }: MetricsTableProps) {
   const flashAttrs = (nodeId: string, field: FlashField) => {
-    if (!flashingCells) return {}
-    const flashCount = flashingCells.get(cellFlashKey({ nodeId, field }))
-    if (flashCount === undefined) return {}
+    if (!flashingCells) return {};
+    const flashCount = flashingCells.get(cellFlashKey({ nodeId, field }));
+    if (flashCount === undefined) return {};
     return {
       'data-changed': 'true',
       'data-flash-parity': flashCount % 2 === 0 ? 'even' : 'odd',
-    }
-  }
+    };
+  };
 
   return (
     <Wrapper>
@@ -294,23 +293,19 @@ export function MetricsTable({
         <thead>
           <tr>
             {COLUMNS.map(({ key, label, numeric }) => {
-              const sorted = sort.key === key
-              const ThCell = numeric ? ThNumeric : Th
+              const sorted = sort.key === key;
+              const ThCell = numeric ? ThNumeric : Th;
               return (
                 <ThCell
                   key={key}
-                  aria-sort={
-                    sorted ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined
-                  }
+                  aria-sort={sorted ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
                 >
                   <SortButton type="button" onClick={() => onSortToggle(key)}>
                     {label}
-                    {sorted && (
-                      <span aria-hidden="true">{sort.dir === 'asc' ? '↑' : '↓'}</span>
-                    )}
+                    {sorted && <span aria-hidden="true">{sort.dir === 'asc' ? '↑' : '↓'}</span>}
                   </SortButton>
                 </ThCell>
-              )
+              );
             })}
           </tr>
         </thead>
@@ -332,11 +327,11 @@ export function MetricsTable({
                 onClick={() => onSelect(row.id)}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    onSelect(row.id)
-                    return
+                    event.preventDefault();
+                    onSelect(row.id);
+                    return;
                   }
-                  handleRowNavKey(event)
+                  handleRowNavKey(event);
                 }}
               >
                 <Td>
@@ -345,7 +340,9 @@ export function MetricsTable({
                   </NameCell>
                 </Td>
                 <Td>{levelLabel(row.depth)}</Td>
-                <TdNumeric {...flashAttrs(row.id, NUMERIC_FIELDS[0])}>{row.totalHeadcount}</TdNumeric>
+                <TdNumeric {...flashAttrs(row.id, NUMERIC_FIELDS[0])}>
+                  {row.totalHeadcount}
+                </TdNumeric>
                 <TdNumeric {...flashAttrs(row.id, NUMERIC_FIELDS[1])}>
                   {formatBudget(row.totalBudget)}
                 </TdNumeric>
@@ -361,5 +358,5 @@ export function MetricsTable({
         </tbody>
       </Table>
     </Wrapper>
-  )
+  );
 }

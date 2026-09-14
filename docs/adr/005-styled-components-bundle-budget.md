@@ -10,8 +10,9 @@
 `pnpm check:size` (gzip-размер `dist/assets/*.js` ≤ 200_000 байт), вызывается в `pnpm build`.
 
 **Альтернативы.**
-- *CSS-модули* — дешевле по бандлу, но плюс задания не берём.
-- *Tailwind* — конфликтует с выбором styled-components как «плюса». Отклонено.
+
+- _CSS-модули_ — дешевле по бандлу, но плюс задания не берём.
+- _Tailwind_ — конфликтует с выбором styled-components как «плюса». Отклонено.
 
 **Последствия.** styled-components v6 + React + TanStack Query + zod ≈ 150–180 КБ gzip —
 укладываемся, но каждая новая зависимость проходит через `check:size`. `prefers-reduced-motion`
