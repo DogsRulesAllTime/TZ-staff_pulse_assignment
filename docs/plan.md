@@ -266,11 +266,11 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 
 - Produces: `docker compose up --build` → nginx :8080 (статика + `/api` прокси); `pnpm check:size` → падает при >200 КБ gzip.
 
-- [ ] **Step 1:** `scripts/check-size.mjs`: gzip-размер `dist/assets/*.js` ≤ 200_000 байт; подключить в `build`-пайплайн. Зафиксировать текущий размер в PROGRESS.
-- [ ] **Step 2:** Nginx: gzip on (text/html, js, css, svg), `location /api/ { proxy_pass http://server:4000; }`, для `/api/events`: `proxy_buffering off; proxy_read_timeout 1h;`. Статика — immutable-кэш для хэшированных assets.
-- [ ] **Step 3:** Dockerfiles: клиент — multi-stage (node:20 build → nginx:alpine); сервер — node:20-alpine. `.env` → `VITE_API_BASE_URL`, `PORT` сервера.
-- [ ] **Step 4:** Проверка: `docker compose up --build` → `curl localhost:8080/api/org-tree` → 200; страница отдаётся с gzip (`curl -H 'Accept-Encoding: gzip' -I`).
-- [ ] **Step 5:** Commit: `git commit -m "chore(deploy): docker compose, nginx gzip/proxy, bundle size budget"`.
+- [x] **Step 1:** `scripts/check-size.mjs`: gzip-размер `dist/assets/*.js` ≤ 200_000 байт; подключить в `build`-пайплайн. Зафиксировать текущий размер в PROGRESS.
+- [x] **Step 2:** Nginx: gzip on (text/html, js, css, svg), `location /api/ { proxy_pass http://server:4000; }`, для `/api/events`: `proxy_buffering off; proxy_read_timeout 1h;`. Статика — immutable-кэш для хэшированных assets.
+- [x] **Step 3:** Dockerfiles: клиент — multi-stage (node:20 build → nginx:alpine); сервер — node:20-alpine. `.env` → `VITE_API_BASE_URL`, `PORT` сервера.
+- [x] **Step 4:** Проверка: `docker compose up --build` → `curl localhost:8080/api/org-tree` → 200; страница отдаётся с gzip (`curl -H 'Accept-Encoding: gzip' -I`).
+- [x] **Step 5:** Commit: `git commit -m "chore(deploy): docker compose, nginx gzip/proxy, bundle size budget"`.
 
 ### Task 12: AI-поиск
 
@@ -285,9 +285,9 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 - Consumes: `OrgNode[]`, `matchesFilter`.
 - Produces: `parseNaturalQuery(q: string, nodes: OrgNode[]): StructuredFilter | null`; `StructuredFilter = { nameSubstring?: string; minHeadcount?: number; minBudget?: number; minPerformance?: number }`.
 
-- [ ] **Step 1:** тесты парсера: «команды с бюджетом больше 1 млн» → `{ nameSubstring: 'команда', minBudget: 1_000_000 }`; «эффективность выше 80» → `{ minPerformance: 80 }`; «больше 20 человек» → `{ minHeadcount: 20 }`; нераспознанное → `null` → fallback `matchesFilter`. Правила: regex-шаблоны по словарю (рублей/человек/эффективность/больше-меньше), нормализация «1 млн/1к». Реализация — чистые функции, без LLM.
-- [ ] **Step 2:** `<AiSearchBar/>`: ввод → structured filter применяется к строкам таблицы + подсветка совпавших узлов в дереве; под полем — подпись «распознано: …» или «обычный поиск».
-- [ ] **Step 3:** Commit: `git commit -m "feat(search): natural-language query parser with text-search fallback"`.
+- [x] **Step 1:** тесты парсера: «команды с бюджетом больше 1 млн» → `{ nameSubstring: 'команда', minBudget: 1_000_000 }`; «эффективность выше 80» → `{ minPerformance: 80 }`; «больше 20 человек» → `{ minHeadcount: 20 }`; нераспознанное → `null` → fallback `matchesFilter`. Правила: regex-шаблоны по словарю (рублей/человек/эффективность/больше-меньше), нормализация «1 млн/1к». Реализация — чистые функции, без LLM.
+- [x] **Step 2:** `<AiSearchBar/>`: ввод → structured filter применяется к строкам таблицы + подсветка совпавших узлов в дереве; под полем — подпись «распознано: …» или «обычный поиск».
+- [x] **Step 3:** Commit: `git commit -m "feat(search): natural-language query parser with text-search fallback"`.
 
 ### Task 13: Финализация
 
@@ -296,7 +296,9 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 - Modify: `README.md`, `docs/ai.md`, `docs/PROGRESS.md`
 - Create: скриншоты `docs/screenshots/*.png` (или GIF)
 
-- [ ] **Step 1:** `docs/ai.md`: что генерировали AI, что переписали руками и почему (по факту работы, не выдумка).
-- [ ] **Step 2:** README: раздел «AI в разработке» (ссылка на docs/ai.md), запуск одной командой, скриншоты.
-- [ ] **Step 3:** Проверка чек-листа сдачи: теги `step/1..4`, unit-тест агрегации, docs (architecture/data-model/ADR), PROGRESS актуален.
-- [ ] **Step 4:** Commit + тег: `git commit -m "docs: final readme, AI usage notes, screenshots"`; `git tag step/4`.
+- [x] **Step 1:** `docs/ai.md`: что генерировали AI, что переписали руками и почему (по факту работы, не выдумка).
+- [x] **Step 2:** README: раздел «AI в разработке» (ссылка на docs/ai.md), запуск одной командой, скриншоты.
+- [x] **Step 3:** Проверка чек-листа сдачи: теги `step/1..4`, unit-тест агрегации, docs (architecture/data-model/ADR), PROGRESS актуален.
+- [x] **Step 4:** Commit + тег: `git commit -m "docs: final readme, AI usage notes, screenshots"`; `git tag step/4`.
+
+> **Статус:** этап 04 завершён (коммиты de3488d..63029d1, тег `step/4`). Oxlint+Oxfmt (Rust, type-aware TS7), Docker+nginx (live-проверено), AI-поиск, скриншоты. Проект завершён — см. `docs/PROGRESS.md`.
