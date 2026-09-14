@@ -301,4 +301,4 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 - [x] **Step 3:** Проверка чек-листа сдачи: теги `step/1..4`, unit-тест агрегации, docs (architecture/data-model/ADR), PROGRESS актуален.
 - [x] **Step 4:** Commit + тег: `git commit -m "docs: final readme, AI usage notes, screenshots"`; `git tag step/4`.
 
-> **Статус:** этап 04 завершён (коммиты de3488d..63029d1, тег `step/4`). Oxlint+Oxfmt (Rust, type-aware TS7), Docker+nginx (live-проверено), AI-поиск, скриншоты. Проект завершён — см. `docs/PROGRESS.md`.
+> **Статус:** этап 04 завершён (коммиты de3488d..d7eb0dd, тег `step/4` ставится на финальный коммит). Oxlint+Oxfmt (Rust, type-aware TS7), Docker+nginx (live-проверено), AI-поиск, скриншоты. Проект завершён — см. `docs/PROGRESS.md`.
