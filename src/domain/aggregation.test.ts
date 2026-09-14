@@ -1,21 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { aggregateForest, recomputeBranch } from './aggregation'
-import { buildForest, type TreeNode } from './tree'
-
-type NodeInput = Omit<TreeNode, 'children' | 'depth'>
-
-/** Тест-фикстура — единственное место, где допустим фабричный хелпер (Task 6 вынесет его). */
-function node(partial: Partial<NodeInput> & Pick<NodeInput, 'id'>): NodeInput {
-  return {
-    name: partial.id,
-    parentId: null,
-    headcount: 1,
-    budget: 1000,
-    performance: 80,
-    updatedAt: '2025-01-01T00:00:00.000Z',
-    ...partial,
-  }
-}
+import { buildForest } from './tree'
+import { node, type NodeInput } from '@/test/factories'
 
 /** Фикстура из брифа: дивизион 10 чел./perf 80 → отдел 4 чел./perf 60 → команда 6 чел./perf 50. */
 const chainFixture: NodeInput[] = [

@@ -1,7 +1,8 @@
 import { renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useOrgData } from './useOrgData'
-import { buildForest, type TreeNode } from '@/domain/tree'
+import { buildForest } from '@/domain/tree'
+import { node, type NodeInput } from '@/test/factories'
 
 vi.mock('@/data/cache', () => ({
   ORG_TREE_KEY: ['org-tree'] as const,
@@ -11,20 +12,6 @@ vi.mock('@/data/cache', () => ({
 const useOrgTreeQuery = vi.mocked(
   (await import('@/data/cache')).useOrgTreeQuery,
 )
-
-type NodeInput = Omit<TreeNode, 'children' | 'depth'>
-
-function node(partial: Partial<NodeInput> & Pick<NodeInput, 'id'>): NodeInput {
-  return {
-    name: partial.id,
-    parentId: null,
-    headcount: 1,
-    budget: 1000,
-    performance: 80,
-    updatedAt: '2025-01-01T00:00:00.000Z',
-    ...partial,
-  }
-}
 
 const fixture: NodeInput[] = [
   node({ id: 'div-1' }),

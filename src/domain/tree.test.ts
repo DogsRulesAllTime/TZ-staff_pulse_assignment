@@ -1,19 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { buildForest, DataError, defaultExpandedIds, type TreeNode } from './tree'
-
-type NodeInput = Omit<TreeNode, 'children' | 'depth'>
-
-function node(partial: Partial<NodeInput> & Pick<NodeInput, 'id'>): NodeInput {
-  return {
-    name: partial.id,
-    parentId: null,
-    headcount: 1,
-    budget: 1000,
-    performance: 80,
-    updatedAt: '2025-01-01T00:00:00.000Z',
-    ...partial,
-  }
-}
+import { buildForest, DataError, defaultExpandedIds } from './tree'
+import { node, type NodeInput } from '@/test/factories'
 
 /** 1 дивизион → 2 отдела → 2 команды. */
 const fixture: NodeInput[] = [
