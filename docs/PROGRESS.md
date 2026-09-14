@@ -19,6 +19,10 @@
 | 7 | 2025-09-14 | `cf756ce` | 01 | Ревью-фикс: DataError из buildForest → status 'error' (не краш рендера); +2 hook-теста | — | — |
 | 8 | 2025-09-14 | `50eb50d` | 01 | Финальное ревью ветки: expansion сохраняется при refetch (prevForest ref, RED→GREEN), SSE res.on('error') против ERR_STREAM_DESTROYED, mid-порог PerformanceDot в тестах, lang=ru, typecheck:node в build, чистка миноров; 56 тестов | — | финальное whole-branch ревью как отдельная ступень процесса |
 
+| 9 | 2025-09-14 | `d4d0c1c` | docs | Чекбоксы Task 1–4 в docs/plan.md отмечены выполненными (22 шага) | — | план живёт вместе с кодом |
+| 10 | 2025-09-14 | `e0580b8` | 02 | Агрегация: aggregateForest — один post-order DFS (накопление Σperf·hc и Σhc ДО деления — без compounded-округлений); recomputeBranch — in-place Map, dirty-set по root-путям, identity сохраняется вне множества; 9 тестов RED→GREEN | «Агрегация считается один раз… и мемоизируется»; «Средняя эффективность — взвешенная по headcount»; «Unit-тест на функцию агрегации» | численно корректная формула взвешенного среднего; документированный контракт мутирования Map; эквивалентность recompute ≡ full |
+| 11 | 2025-09-14 | `089faf2` | 02 | Ревью-фикс: эквивалентность recomputeBranch на ветвящемся дереве (fresh+sibling-cached mixing), чистка pass-through и JSDoc; 66 тестов | — | — |
+
 ## Чек-лист этапов
 
 - [x] `step/1` FOUNDATION — Tasks 1–4: scaffold ✅ mock API ✅ валидация ✅ кэш stale 5s ✅ дерево ✅ состояния ✅
