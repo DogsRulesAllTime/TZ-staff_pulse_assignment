@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { aggregateForest, recomputeBranch } from './aggregation'
-import { buildForest, type Forest, type TreeNode } from './tree'
+import { buildForest, type TreeNode } from './tree'
 
 type NodeInput = Omit<TreeNode, 'children' | 'depth'>
 
@@ -32,13 +32,9 @@ const wideFixture: NodeInput[] = [
   node({ id: 'div-2', name: 'Дивизион 2', headcount: 5, budget: 500_000, performance: 90 }),
 ]
 
-function build(nodes: NodeInput[]): Forest {
-  return buildForest(nodes)
-}
-
 describe('aggregateForest', () => {
   it('leaf aggregates equal its own values', () => {
-    const aggregates = aggregateForest(build(chainFixture))
+    const aggregates = aggregateForest(buildForest(chainFixture))
 
     expect(aggregates.get('team-1-1-1')).toEqual({
       totalHeadcount: 6,
@@ -48,7 +44,7 @@ describe('aggregateForest', () => {
   })
 
   it('middle node aggregates its subtree (dept = own + team)', () => {
-    const aggregates = aggregateForest(build(chainFixture))
+    const aggregates = aggregateForest(buildForest(chainFixture))
 
     // (60·4 + 50·6) / 10 = 54
     expect(aggregates.get('dept-1-1')).toEqual({
@@ -59,7 +55,7 @@ describe('aggregateForest', () => {
   })
 
   it('division: totalHeadcount = 20, totalBudget = сумма всех, weightedPerformance = 67', () => {
-    const aggregates = aggregateForest(build(chainFixture))
+    const aggregates = aggregateForest(buildForest(chainFixture))
 
     const division = aggregates.get('div-1')!
     expect(division.totalHeadcount).toBe(20)
@@ -69,7 +65,7 @@ describe('aggregateForest', () => {
   })
 
   it('empty forest → empty Map, no NaN', () => {
-    const aggregates = aggregateForest(build([]))
+    const aggregates = aggregateForest(buildForest([]))
 
     expect(aggregates).toBeInstanceOf(Map)
     expect(aggregates.size).toBe(0)
@@ -78,7 +74,7 @@ describe('aggregateForest', () => {
 
 describe('recomputeBranch', () => {
   it('after patching team 12 чел./perf 70 equals a fresh full aggregateForest', () => {
-    const forest = build(chainFixture)
+    const forest = buildForest(chainFixture)
     const aggregates = aggregateForest(forest)
 
     const team = forest.byId.get('team-1-1-1')!
@@ -95,7 +91,7 @@ describe('recomputeBranch', () => {
   })
 
   it('patching a node with children recomputes the whole branch (dept patch)', () => {
-    const forest = build(chainFixture)
+    const forest = buildForest(chainFixture)
     const aggregates = aggregateForest(forest)
 
     const dept = forest.byId.get('dept-1-1')!
@@ -110,7 +106,7 @@ describe('recomputeBranch', () => {
   })
 
   it('mutates the passed Map in place and returns the same instance', () => {
-    const forest = build(chainFixture)
+    const forest = buildForest(chainFixture)
     const aggregates = aggregateForest(forest)
     const before = aggregates.get('team-1-1-1')
 
@@ -121,7 +117,7 @@ describe('recomputeBranch', () => {
   })
 
   it('preserves object identity of untouched nodes’ aggregates', () => {
-    const forest = build(wideFixture)
+    const forest = buildForest(wideFixture)
     const aggregates = aggregateForest(forest)
     const siblingTeamBefore = aggregates.get('team-1-1-2')
     const otherDivisionBefore = aggregates.get('div-2')
@@ -135,8 +131,33 @@ describe('recomputeBranch', () => {
     expect(aggregates.get('div-2')).toBe(otherDivisionBefore)
   })
 
+  it('branching fixture: patching one sibling mixes fresh child with stale-but-valid cached sibling, equals fresh aggregateForest', () => {
+    const forest = buildForest(wideFixture)
+    const aggregates = aggregateForest(forest)
+    const untouchedSiblingBefore = aggregates.get('team-1-1-1')
+
+    const team = forest.byId.get('team-1-1-2')!
+    team.headcount = 12
+    team.performance = 70
+
+    const recomputed = recomputeBranch(forest, aggregates, ['team-1-1-2'])
+    const fresh = aggregateForest(forest)
+
+    // Отдел 1.1 собирает свежепересчитанную команду 1.1.2 с кэшированной
+    // (не тронутой) командой 1.1.1 — тот самый путь смешивания соседей.
+    expect(untouchedSiblingBefore).toBeDefined()
+    expect(aggregates.get('team-1-1-1')).toBe(untouchedSiblingBefore)
+    expect(recomputed).toEqual(fresh)
+    // отдел: собственные 4 + команда 1.1.1 (6) + команда 1.1.2 (12) = 22;
+    // perf = (60·4 + 50·6 + 70·12) / 22 = 1380 / 22
+    expect(recomputed.get('dept-1-1')!.totalHeadcount).toBe(22)
+    expect(recomputed.get('dept-1-1')!.weightedPerformance).toBeCloseTo(1380 / 22, 10)
+    // дивизион: 10 собственных + 22 из отдела = 32
+    expect(recomputed.get('div-1')!.totalHeadcount).toBe(32)
+  })
+
   it('ignores unknown changed ids gracefully (no crash, map untouched)', () => {
-    const forest = build(chainFixture)
+    const forest = buildForest(chainFixture)
     const aggregates = aggregateForest(forest)
     const snapshot = new Map(aggregates)
 

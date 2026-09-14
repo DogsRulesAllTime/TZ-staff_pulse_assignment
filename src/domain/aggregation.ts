@@ -69,7 +69,8 @@ export function aggregateForest(forest: Forest): Map<string, Aggregates> {
  * descendants, and its root-path ancestors. Nodes are recomputed deepest-first,
  * so a changed descendant's fresh values flow up through its ancestors; nodes
  * outside the set keep their aggregate object identity.
- * Unknown ids are ignored (no crash). Only affected branches are touched — O(changed subtree height).
+ * Unknown ids are ignored (no crash). Only affected branches are touched —
+ * O(changed subtree size + the depth sort over the dirty set).
  */
 export function recomputeBranch(
   forest: Forest,
