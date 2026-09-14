@@ -22,7 +22,8 @@ export default tseslint.config(
     },
   })),
 
-  reactHooks.configs.flat['recommended-latest'],
+  // Pinned named config (`recommended-latest` floats with plugin minors).
+  reactHooks.configs.flat['recommended'],
 
   {
     ...reactRefresh.configs.vite,
