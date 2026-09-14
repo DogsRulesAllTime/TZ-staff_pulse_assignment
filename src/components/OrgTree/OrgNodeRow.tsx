@@ -118,6 +118,7 @@ export function OrgNodeRow({ node, expanded, onToggle, selectedId }: OrgNodeRowP
       </Row>
       {hasChildren && (
         <Reveal $open={isOpen} data-reveal inert={!isOpen}>
+          {/* oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- role="group" на стилизованном div вместо fieldset: UA-стили fieldset ломают сетку дерева; группировка неформовая */}
           <Children role="group">
             {node.children.map((child) => (
               <OrgNodeRow

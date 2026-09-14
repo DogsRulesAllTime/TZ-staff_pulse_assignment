@@ -30,7 +30,7 @@ export function UiStateProvider({ children }: { children: ReactNode }) {
   return <UiStateContext.Provider value={value}>{children}</UiStateContext.Provider>;
 }
 
-// eslint-disable-next-line react-refresh/only-export-components -- хук и Provider неразделимы по домену; полная перезагрузка файла при HMR приемлема
+// oxlint-disable-next-line react/only-export-components -- хук и Provider неразделимы по домену; полная перезагрузка файла при HMR приемлема
 export function useUiState(): UiState {
   const ctx = useContext(UiStateContext);
   if (!ctx) {

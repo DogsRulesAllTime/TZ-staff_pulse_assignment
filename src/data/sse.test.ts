@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { connectSse, type SseStatus } from './sse';
+import type { Patch } from './schema';
 
 type Listener = (event: { data?: string }) => void;
 
@@ -177,7 +178,7 @@ describe('connectSse (SSE-транспорт с backoff-reconnect)', () => {
   });
 
   it('patch message → parsed patch passed to onPatch, no refetch', () => {
-    const onPatch = vi.fn();
+    const onPatch = vi.fn<(patch: Patch) => void>();
     const conn = connectSse({
       url: '/api/events',
       eventSourceFactory: (url) => new MockEventSource(url),
@@ -193,7 +194,7 @@ describe('connectSse (SSE-транспорт с backoff-reconnect)', () => {
   });
 
   it('invalid payload is ignored: callback not invoked, no crash, connection stays open', () => {
-    const onPatch = vi.fn();
+    const onPatch = vi.fn<(patch: Patch) => void>();
     const conn = connectSse({
       url: '/api/events',
       eventSourceFactory: (url) => new MockEventSource(url),

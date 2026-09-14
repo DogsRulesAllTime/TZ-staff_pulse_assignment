@@ -8,7 +8,7 @@ import { node, type NodeInput } from '@/test/factories';
 
 vi.mock('@/data/cache', () => ({
   ORG_TREE_KEY: ['org-tree'] as const,
-  useOrgTreeQuery: vi.fn(),
+  useOrgTreeQuery: vi.fn<() => unknown>(),
 }));
 
 const useOrgTreeQuery = vi.mocked((await import('@/data/cache')).useOrgTreeQuery);
@@ -31,7 +31,7 @@ describe('useOrgData', () => {
       isPending: true,
       isError: false,
       data: undefined,
-      refetch: vi.fn(),
+      refetch: vi.fn<() => void>(),
     } as never);
 
     const { result } = renderHook(() => useOrgData());
@@ -48,7 +48,7 @@ describe('useOrgData', () => {
       isError: true,
       error: new Error('boom'),
       data: undefined,
-      refetch: vi.fn(),
+      refetch: vi.fn<() => void>(),
     } as never);
 
     const { result } = renderHook(() => useOrgData());
@@ -63,7 +63,7 @@ describe('useOrgData', () => {
       isPending: false,
       isError: false,
       data: [],
-      refetch: vi.fn(),
+      refetch: vi.fn<() => void>(),
     } as never);
 
     const { result } = renderHook(() => useOrgData());
@@ -78,7 +78,7 @@ describe('useOrgData', () => {
       isPending: false,
       isError: false,
       data: fixture,
-      refetch: vi.fn(),
+      refetch: vi.fn<() => void>(),
     } as never);
 
     const { result, rerender } = renderHook(() => useOrgData());
@@ -99,7 +99,7 @@ describe('useOrgData', () => {
       isPending: false,
       isError: false,
       data: [node({ id: 'div-1' }), node({ id: 'orphan', parentId: 'missing' })],
-      refetch: vi.fn(),
+      refetch: vi.fn<() => void>(),
     } as never);
 
     const { result } = renderHook(() => useOrgData());
@@ -115,7 +115,7 @@ describe('useOrgData', () => {
       isPending: false,
       isError: false,
       data: [node({ id: 'a', parentId: 'b' }), node({ id: 'b', parentId: 'a' })],
-      refetch: vi.fn(),
+      refetch: vi.fn<() => void>(),
     } as never);
 
     const { result } = renderHook(() => useOrgData());
@@ -125,7 +125,7 @@ describe('useOrgData', () => {
   });
 
   it('exposes the query refetch', () => {
-    const refetch = vi.fn();
+    const refetch = vi.fn<() => void>();
     vi.mocked(useOrgTreeQuery).mockReturnValue({
       status: 'success',
       fetchStatus: 'idle',
@@ -165,7 +165,7 @@ describe('useOrgData — инкрементальная агрегация (Task
       isPending: data === undefined,
       isError: false,
       data,
-      refetch: vi.fn(),
+      refetch: vi.fn<() => void>(),
     } as never);
   }
 

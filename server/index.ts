@@ -45,7 +45,7 @@ const stopMutations = startMutationLoop({
 const heartbeat = setInterval(() => hub.broadcast(HEARTBEAT_CHUNK), HEARTBEAT_INTERVAL_MS);
 
 const server = app.listen(PORT, () => {
-  // eslint-disable-next-line no-console -- баннер старта мок-API идёт в stdout; warn/error исказили бы семантику
+  // oxlint-disable-next-line no-console -- баннер старта мок-API идёт в stdout; warn/error исказили бы семантику
   console.log(`[api] mock org-tree API on http://localhost:${PORT}`);
 });
 

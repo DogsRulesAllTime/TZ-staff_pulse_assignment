@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { ThemeProvider } from 'styled-components';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { theme } from '@/app/theme';
-import { MetricsTable, type MetricRow } from './MetricsTable';
+import { MetricsTable, type MetricColumn, type MetricRow } from './MetricsTable';
 
 const rows: MetricRow[] = [
   {
@@ -28,11 +28,11 @@ function renderTable(overrides: Partial<Parameters<typeof MetricsTable>[0]> = {}
   const props: Parameters<typeof MetricsTable>[0] = {
     rows,
     sort: { key: 'name', dir: 'asc' },
-    onSortToggle: vi.fn(),
+    onSortToggle: vi.fn<(key: MetricColumn) => void>(),
     selectedId: null,
-    onSelect: vi.fn(),
+    onSelect: vi.fn<(id: string) => void>(),
     filter: '',
-    onFilterChange: vi.fn(),
+    onFilterChange: vi.fn<(value: string) => void>(),
     ...overrides,
   };
   render(
@@ -227,7 +227,7 @@ describe('MetricsTable keyboard navigation', () => {
 
   /** jsdom не реализует scrollIntoView — ставим шпион вместо отсутствующего метода. */
   function stubScrollIntoView() {
-    const spy = vi.fn();
+    const spy = vi.fn<() => void>();
     Object.defineProperty(Element.prototype, 'scrollIntoView', {
       configurable: true,
       writable: true,
@@ -239,7 +239,7 @@ describe('MetricsTable keyboard navigation', () => {
   /** Как stubScrollIntoView, но запоминает this (элемент, на котором вызван). */
   function stubScrollIntoViewWithTarget() {
     const targets: Element[] = [];
-    const spy = vi.fn(function (this: Element) {
+    const spy = vi.fn<(this: Element) => void>(function (this: Element) {
       targets.push(this);
     });
     Object.defineProperty(Element.prototype, 'scrollIntoView', {

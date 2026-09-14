@@ -38,18 +38,21 @@ export function ViewToggle() {
   ];
 
   return (
-    <Group role="group" aria-label="Переключение вида">
-      {options.map(({ value, label }) => (
-        <Button
-          key={value}
-          type="button"
-          $active={view === value}
-          aria-pressed={view === value}
-          onClick={() => setView(value)}
-        >
-          {label}
-        </Button>
-      ))}
-    </Group>
+    <>
+      {/* oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- role="group" на стилизованном div: fieldset тянет UA-стили (рамка/отступы), семантика группы и aria-label уже есть */}
+      <Group role="group" aria-label="Переключение вида">
+        {options.map(({ value, label }) => (
+          <Button
+            key={value}
+            type="button"
+            $active={view === value}
+            aria-pressed={view === value}
+            onClick={() => setView(value)}
+          >
+            {label}
+          </Button>
+        ))}
+      </Group>
+    </>
   );
 }

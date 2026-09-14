@@ -13,7 +13,7 @@ const validNode = {
 };
 
 function stubFetch(impl: () => Response | Promise<Response>) {
-  const fetchMock = vi.fn(impl);
+  const fetchMock = vi.fn<typeof impl>(impl);
   vi.stubGlobal('fetch', fetchMock);
   return fetchMock;
 }

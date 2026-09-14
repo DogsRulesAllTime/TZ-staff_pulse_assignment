@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
+import { ZodError } from 'zod';
 import { orgNodeSchema, orgTreeSchema, type OrgNode } from './schema';
 
 const validNode = {
@@ -18,28 +19,28 @@ describe('orgNodeSchema', () => {
   });
 
   it('rejects performance above 100', () => {
-    expect(() => orgNodeSchema.parse({ ...validNode, performance: 150 })).toThrow();
+    expect(() => orgNodeSchema.parse({ ...validNode, performance: 150 })).toThrow(ZodError);
   });
 
   it('rejects negative headcount', () => {
-    expect(() => orgNodeSchema.parse({ ...validNode, headcount: -1 })).toThrow();
+    expect(() => orgNodeSchema.parse({ ...validNode, headcount: -1 })).toThrow(ZodError);
   });
 
   it('rejects missing name', () => {
     const { name: _name, ...withoutName } = validNode;
-    expect(() => orgNodeSchema.parse(withoutName)).toThrow();
+    expect(() => orgNodeSchema.parse(withoutName)).toThrow(ZodError);
   });
 
   it('rejects empty-string id', () => {
-    expect(() => orgNodeSchema.parse({ ...validNode, id: '' })).toThrow();
+    expect(() => orgNodeSchema.parse({ ...validNode, id: '' })).toThrow(ZodError);
   });
 
   it('rejects empty-string name', () => {
-    expect(() => orgNodeSchema.parse({ ...validNode, name: '' })).toThrow();
+    expect(() => orgNodeSchema.parse({ ...validNode, name: '' })).toThrow(ZodError);
   });
 
   it('rejects non-ISO updatedAt', () => {
-    expect(() => orgNodeSchema.parse({ ...validNode, updatedAt: 'yesterday' })).toThrow();
+    expect(() => orgNodeSchema.parse({ ...validNode, updatedAt: 'yesterday' })).toThrow(ZodError);
   });
 });
 
@@ -54,6 +55,6 @@ describe('orgTreeSchema', () => {
   });
 
   it('rejects when any node is invalid', () => {
-    expect(() => orgTreeSchema.parse([validNode, { ...validNode, budget: -5 }])).toThrow();
+    expect(() => orgTreeSchema.parse([validNode, { ...validNode, budget: -5 }])).toThrow(ZodError);
   });
 });

@@ -19,7 +19,7 @@ export function useMediaQuery(query: string): boolean {
     const onChange = (event: MediaQueryListEvent): void => {
       setMatches(event.matches);
     };
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- ресинк состояния при смене query; useState+effect — осознанная альтернатива useSyncExternalStore (jsdom/подмены в тестах)
+    // oxlint-disable-next-line react/set-state-in-effect -- ресинк состояния при смене query; useState+effect — осознанная альтернатива useSyncExternalStore (jsdom/подмены в тестах)
     setMatches(mql.matches);
     mql.addEventListener('change', onChange);
     return () => {

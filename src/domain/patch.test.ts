@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ZodError } from 'zod';
 import { patchSchema } from '@/data/schema';
 import { node } from '@/test/factories';
 import { buildForest } from '@/domain/tree';
@@ -67,19 +68,21 @@ describe('applyPatch', () => {
 
   it('rejects an invalid payload at the schema level', () => {
     // пустые changes
-    expect(() => patchSchema.parse({ id: 'x', changes: {}, updatedAt: UPDATED_AT })).toThrow();
+    expect(() => patchSchema.parse({ id: 'x', changes: {}, updatedAt: UPDATED_AT })).toThrow(
+      ZodError,
+    );
     // отрицательный budget
     expect(() =>
       patchSchema.parse({ id: 'x', changes: { budget: -1 }, updatedAt: UPDATED_AT }),
-    ).toThrow();
+    ).toThrow(ZodError);
     // некорректный updatedAt
     expect(() =>
       patchSchema.parse({ id: 'x', changes: { budget: 1 }, updatedAt: 'yesterday' }),
-    ).toThrow();
+    ).toThrow(ZodError);
     // пустой id
     expect(() =>
       patchSchema.parse({ id: '', changes: { budget: 1 }, updatedAt: UPDATED_AT }),
-    ).toThrow();
+    ).toThrow(ZodError);
   });
 
   it('patches work on forest-backed flat arrays (data contract: query cache holds OrgNode[])', () => {

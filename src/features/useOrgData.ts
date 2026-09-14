@@ -117,7 +117,7 @@ export function useOrgData(lastPatch?: AppliedPatch | null): OrgData {
   // Запись в cacheRef здесь безопасна: каждый путь детерминирован парой
   // (query.data, lastPatch.seq) и идемпотентен при повторном вызове useMemo
   // (StrictMode / прерванный рендер возвращает кеш как есть).
-  /* eslint-disable react-hooks/refs -- cacheRef — намеренный кеш уровня рендера: доступ к .current внутри useMemo детерминирован парой (query.data, lastPatch.seq) и идемпотентен; перенос записи в effect меняет семантику */
+  /* oxlint-disable react/refs -- cacheRef — намеренный кеш уровня рендера: доступ к .current внутри useMemo детерминирован парой (query.data, lastPatch.seq) и идемпотентен; перенос записи в effect меняет семантику */
   const build = useMemo((): {
     forest: Forest | undefined;
     aggregates: Map<string, Aggregates> | undefined;
@@ -201,8 +201,8 @@ export function useOrgData(lastPatch?: AppliedPatch | null): OrgData {
     aggregates: build.aggregates,
     changedCells: build.changedCells,
     status,
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises -- передаём refetch как есть: тест фиксирует identity, подписчики игнорируют Promise
+    // oxlint-disable-next-line typescript/no-misused-promises -- передаём refetch как есть: тест фиксирует identity, подписчики игнорируют Promise
     refetch: query.refetch,
   };
-  /* eslint-enable react-hooks/refs */
+  /* oxlint-enable react/refs */
 }

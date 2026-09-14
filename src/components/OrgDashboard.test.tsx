@@ -10,7 +10,7 @@ import type { OrgData } from '@/features/useOrgData';
 import { OrgDashboard } from './OrgDashboard';
 
 vi.mock('@/features/useOrgData', () => ({
-  useOrgData: vi.fn(),
+  useOrgData: vi.fn<() => OrgData>(),
 }));
 
 const useOrgData = vi.mocked((await import('@/features/useOrgData')).useOrgData);
@@ -59,7 +59,7 @@ function setOrgData(
   vi.mocked(useOrgData).mockReturnValue({
     forest,
     status,
-    refetch: vi.fn(),
+    refetch: vi.fn<() => void>(),
     aggregates: forest ? aggregateForest(forest) : undefined,
     changedCells,
   });
@@ -76,11 +76,11 @@ function stubMatchMedia(wide: boolean) {
       matches: wide,
       media: '(min-width: 1280px)',
       onchange: null,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      dispatchEvent: vi.fn(),
+      addEventListener: vi.fn<(...args: unknown[]) => void>(),
+      removeEventListener: vi.fn<(...args: unknown[]) => void>(),
+      addListener: vi.fn<(...args: unknown[]) => void>(),
+      removeListener: vi.fn<(...args: unknown[]) => void>(),
+      dispatchEvent: vi.fn<(...args: unknown[]) => void>(),
     }),
   );
 }
