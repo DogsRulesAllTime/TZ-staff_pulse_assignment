@@ -1,0 +1,43 @@
+# Прод-стек для проверки: nginx раздаёт SPA и проксирует /api на Express.
+# Конфигурация через .env (шаблон — .env.example): NGINX_PORT, PORT, CORS_ORIGIN.
+# Запуск: docker compose up --build -d, остановка с очисткой: docker compose down -v.
+
+services:
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    ports:
+      - '${NGINX_PORT:-8080}:80'
+    depends_on:
+      server:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:80/']
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    environment:
+      # Порт должен совпадать с upstream в nginx/default.conf (http://server:4000).
+      PORT: ${PORT:-4000}
+      # Внутри стека CORS не используется (same-origin через nginx), но переменную
+      # передаём, чтобы поведение сервера не зависело от отсутствия .env.
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+    # Порт сервера наружу не проброшен: nginx проксирует /api. Для отладки напрямую
+    # раскомментируйте (тогда учтите CORS_ORIGIN):
+    # ports:
+    #   - '4000:4000'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:4000/api/org-tree']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    restart: unless-stopped
