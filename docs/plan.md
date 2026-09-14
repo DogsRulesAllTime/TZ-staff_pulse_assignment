@@ -25,6 +25,7 @@
 - Абсолютные импорты через алиас `@/` → `src/`.
 - ≥ 40 узлов, ≥ 3 уровней в mock-данных.
 - После каждого коммита — запись в `docs/PROGRESS.md`.
+- Код проходит `pnpm lint` (ESLint 9 flat + typescript-eslint) и `pnpm format:check` (Prettier) — 0 ошибок/0 предупреждений; pre-commit hook (husky + lint-staged) прогоняет их на staged-файлах.
 
 ---
 
@@ -211,7 +212,24 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 > **Статус:** этап 03 завершён (коммиты fb00203..bdcf723, тег `step/3`). SSE-патчи без рефетча, fade-out 1.5с, инкрементальная агрегация, backoff 1→16с, keyboard nav, grid-rows анимация с reduced-motion. См. `docs/PROGRESS.md`.
 ## Этап 04 — BONUS (тег `step/4`)
 
-### Task 10: Docker + Nginx + бюджет бандла
+### Task 10: Качество кода — ESLint 9 (flat) + Prettier + pre-commit
+
+**Files:**
+- Create: `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, `.husky/pre-commit`, `.lintstagedrc.json`
+- Modify: `package.json` (scripts: `lint`, `lint:fix`, `format`, `format:check`; devDeps)
+
+**Interfaces:**
+- Produces: `pnpm lint` (0 warnings policy), `pnpm format:check`; pre-commit hook прогоняет lint-staged (eslint --fix + prettier --write) на staged-файлах.
+
+- [ ] **Step 1:** Установить: `eslint@9`, `typescript-eslint` (плоский конфиг), `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, `eslint-plugin-import` (опционально), `prettier`, `husky`, `lint-staged`.
+- [ ] **Step 2:** `eslint.config.js` — flat config: typescript-eslint recommended-type-checked для `src/**` и `server/**`, react-hooks/recommended, react-refresh, игнор `dist/`, `node_modules/`, `pnpm-lock.yaml`; правило `@typescript-eslint/no-unused-vars` с `argsIgnorePattern: '^_'`; `no-console: ['warn', { allow: ['warn', 'error'] }]`.
+- [ ] **Step 3:** `.prettierrc.json`: `{ "printWidth": 100, "singleQuote": true, "trailingComma": "all", "semi": true }`; `.prettierignore`: dist, pnpm-lock, coverage.
+- [ ] **Step 4:** `pnpm format` по всему репо (один механический format-коммит), затем `pnpm lint:fix`; оставшиеся находки (если есть) чинить осмысленно, не подавляя без причины; итог: `pnpm lint` = 0 ошибок, 0 предупреждений.
+- [ ] **Step 5:** husky pre-commit + lint-staged: `*.{ts,tsx}` → eslint --fix, prettier --write. Проверить: коммит с нарушением формата должен автопоправляться.
+- [ ] **Step 6:** Обновить README (разработка: линт/формат). Commit: `chore(quality): eslint 9 flat config, prettier, husky pre-commit`.
+
+
+### Task 11: Docker + Nginx + бюджет бандла
 
 **Files:**
 - Create: `Dockerfile.client`, `Dockerfile.server`, `docker-compose.yml`, `nginx/default.conf`, `.env.example`, `scripts/check-size.mjs`
@@ -226,7 +244,7 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 - [ ] **Step 4:** Проверка: `docker compose up --build` → `curl localhost:8080/api/org-tree` → 200; страница отдаётся с gzip (`curl -H 'Accept-Encoding: gzip' -I`).
 - [ ] **Step 5:** Commit: `git commit -m "chore(deploy): docker compose, nginx gzip/proxy, bundle size budget"`.
 
-### Task 11: AI-поиск
+### Task 12: AI-поиск
 
 **Files:**
 - Create: `src/domain/search.ts`, `src/components/AiSearchBar.tsx`
@@ -241,7 +259,7 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 - [ ] **Step 2:** `<AiSearchBar/>`: ввод → structured filter применяется к строкам таблицы + подсветка совпавших узлов в дереве; под полем — подпись «распознано: …» или «обычный поиск».
 - [ ] **Step 3:** Commit: `git commit -m "feat(search): natural-language query parser with text-search fallback"`.
 
-### Task 12: Финализация
+### Task 13: Финализация
 
 **Files:**
 - Modify: `README.md`, `docs/ai.md`, `docs/PROGRESS.md`
