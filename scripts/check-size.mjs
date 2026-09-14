@@ -63,6 +63,14 @@ export function checkBudget(totalBytes, budgetBytes = BUDGET_BYTES) {
  */
 export function runCheck({ assetsDir = 'dist/assets', budgetBytes = BUDGET_BYTES } = {}) {
   const files = collectJsAssets(assetsDir);
+  if (files.length === 0) {
+    return {
+      files,
+      total: 0,
+      ok: false,
+      message: `dist пуст — в "${assetsDir}" нет *.js ассетов. Сначала pnpm build.`,
+    };
+  }
   const total = gzipTotalBytes(files);
   const verdict = checkBudget(total, budgetBytes);
   return { files, total, ...verdict };

@@ -12,8 +12,10 @@ const validNode = {
   updatedAt: '2026-02-11T10:00:00.000Z',
 };
 
-function stubFetch(impl: () => Response | Promise<Response>) {
-  const fetchMock = vi.fn<typeof impl>(impl);
+type FetchImpl = (url: string, init?: RequestInit) => Response | Promise<Response>;
+
+function stubFetch(impl: FetchImpl) {
+  const fetchMock = vi.fn<FetchImpl>(impl);
   vi.stubGlobal('fetch', fetchMock);
   return fetchMock;
 }
@@ -75,6 +77,48 @@ describe('fetchOrgTree', () => {
 
     const error = await fetchOrgTree().catch((e: unknown) => e);
 
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).kind).toBe('network');
+  });
+
+  it('passes an external signal through: combined with the timeout, normal path unaffected', async () => {
+    const controller = new AbortController();
+    const fetchMock = stubFetch(() => Response.json([validNode]));
+
+    await expect(fetchOrgTree(controller.signal)).resolves.toEqual([validNode]);
+
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const requestSignal = init.signal as AbortSignal;
+    // Комбинированный сигнал — не переданный (AbortSignal.any), но реагирует на его отмену.
+    expect(requestSignal).not.toBe(controller.signal);
+    expect(requestSignal.aborted).toBe(false);
+    controller.abort();
+    expect(requestSignal.aborted).toBe(true);
+  });
+
+  it('maps an aborted external signal to ApiError kind "aborted"', async () => {
+    const controller = new AbortController();
+    controller.abort();
+    stubFetch((_url, init) => {
+      // Поведение fetch при отменённом сигнале: мгновенное отклонение AbortError.
+      if ((init?.signal as AbortSignal | undefined)?.aborted) {
+        return Promise.reject(new DOMException('This operation was aborted', 'AbortError'));
+      }
+      return Promise.resolve(Response.json([]));
+    });
+
+    const error = await fetchOrgTree(controller.signal).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).kind).toBe('aborted');
+  });
+
+  it('keeps kind "network" when the 10s timeout fired (TimeoutError, external signal not aborted)', async () => {
+    stubFetch(() =>
+      Promise.reject(new DOMException('The operation was aborted due to timeout', 'TimeoutError')),
+    );
+
+    const error = await fetchOrgTree().catch((e: unknown) => e);
     expect(error).toBeInstanceOf(ApiError);
     expect((error as ApiError).kind).toBe('network');
   });

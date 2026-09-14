@@ -5,5 +5,8 @@ export const ORG_TREE_KEY = ['org-tree'] as const;
 
 /** staleTime/retry defaults live on the shared QueryClient in src/main.tsx. */
 export function useOrgTreeQuery() {
-  return useQuery({ queryKey: ORG_TREE_KEY, queryFn: fetchOrgTree });
+  return useQuery({
+    queryKey: ORG_TREE_KEY,
+    queryFn: ({ signal }) => fetchOrgTree(signal),
+  });
 }

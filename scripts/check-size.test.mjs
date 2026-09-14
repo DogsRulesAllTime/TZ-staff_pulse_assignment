@@ -8,7 +8,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { afterEach, describe, expect, it } from 'vitest';
-import { BUDGET_BYTES, checkBudget, collectJsAssets, gzipTotalBytes } from './check-size.mjs';
+import {
+  BUDGET_BYTES,
+  checkBudget,
+  collectJsAssets,
+  gzipTotalBytes,
+  runCheck,
+} from './check-size.mjs';
 
 /** @type {string[]} */
 const tempDirs = [];
@@ -76,5 +82,22 @@ describe('checkBudget', () => {
     expect(result.ok).toBe(false);
     expect(result.message).toContain(String(BUDGET_BYTES + 1000));
     expect(result.message).toContain(String(BUDGET_BYTES));
+  });
+});
+
+describe('runCheck', () => {
+  it('пустой dist (нет *.js) — ok: false с подсказкой про pnpm build', () => {
+    const dir = makeFixtureDir({ 'index.html': '<html></html>', 'style.css': 'body{}' });
+    const result = runCheck({ assetsDir: dir });
+    expect(result.ok).toBe(false);
+    expect(result.total).toBe(0);
+    expect(result.message).toContain('pnpm build');
+  });
+
+  it('непустой dist — обычная проверка бюджета', () => {
+    const dir = makeFixtureDir({ 'index.js': 'const x = 1;' });
+    const result = runCheck({ assetsDir: dir });
+    expect(result.ok).toBe(true);
+    expect(result.total).toBe(gzipSync(Buffer.from('const x = 1;')).byteLength);
   });
 });
