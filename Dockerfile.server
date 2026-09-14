@@ -23,6 +23,10 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
 # NODE_ENV после install: иначе pnpm пропустил бы devDependencies.
 ENV NODE_ENV=production
 
+# tsx ставится pnpm в /app/node_modules/.bin, которого нет на PATH по умолчанию —
+# добавляем, чтобы exec-form CMD ["tsx", ...] нашла бинарник.
+ENV PATH="/app/node_modules/.bin:${PATH}"
+
 COPY server ./server
 
 EXPOSE 4000
