@@ -33,6 +33,10 @@ pnpm build         # production-сборка
 pnpm check:size    # бюджет бандла ≤ 200 КБ gzip
 ```
 
+### Разработка: линт и формат
+
+`pnpm lint` / `pnpm lint:fix` — ESLint 9 (flat, type-checked для `src/**` и `server/**`), `pnpm format` / `pnpm format:check` — Prettier (100 колонок, одинарные кавычки). Pre-commit хуск автоматически прогоняет `lint-staged` (eslint --fix + prettier --write) по staged-файлам при каждом коммите.
+
 ## Структура документации
 
 | Документ                                       | Назначение                                                                                      |
