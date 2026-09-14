@@ -127,14 +127,14 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 - Consumes: `Forest`, `TreeNode`.
 - Produces: `aggregateForest(forest): Map<string, Aggregates>`; `recomputeBranch(forest, aggregates, changedIds: string[]): Map<string, Aggregates>` (in-place обновление кэша по ветке до корней); тип `Aggregates { totalHeadcount; totalBudget; weightedPerformance }`.
 
-- [ ] **Step 1:** тесты (фикстура: 3 узла — дивизион 10 чел./perf 80, отдел 4 чел./perf 60, команда 6 чел./perf 50):
+- [x] **Step 1:** тесты (фикстура: 3 узла — дивизион 10 чел./perf 80, отдел 4 чел./perf 60, команда 6 чел./perf 50):
   - лист: агрегаты = собственные значения;
   - дивизион: `totalHeadcount = 20`, `totalBudget` = сумма всех, `weightedPerformance = (80·10 + 60·4 + 50·6)/20 = 67`;
   - `recomputeBranch` после патча команды 12 чел./perf 70 даёт те же числа, что полный `aggregateForest` заново (инвариант эквивалентности);
   - пустой лес → пустая Map.
   Запустить → FAIL.
-- [ ] **Step 2:** реализация — один post-order DFS; `weightedPerformance` аккумулируется парой `(headcountWeightedPerfSum, subtreeHeadcount)`; `recomputeBranch` — подъём по `parentOf`. PASS.
-- [ ] **Step 3:** Commit: `git commit -m "feat(domain): memoized subtree aggregation with branch recompute"`.
+- [x] **Step 2:** реализация — один post-order DFS; `weightedPerformance` аккумулируется парой `(headcountWeightedPerfSum, subtreeHeadcount)`; `recomputeBranch` — подъём по `parentOf`. PASS.
+- [x] **Step 3:** Commit: `git commit -m "feat(domain): memoized subtree aggregation with branch recompute"`.
 
 ### Task 6: Таблица
 
@@ -146,15 +146,17 @@ export type OrgNode = z.infer<typeof orgNodeSchema>;
 - Consumes: `useOrgData`, `aggregates`, `TreeNode`, `Aggregates`.
 - Produces: `useUiState()` (контекст): `{ view: 'tree'|'table', setView, selectedId, setSelectedId, nameFilter, setNameFilter }`; `useTableSort<T>(rows, initial)` → `{ sorted, sort, toggleSort }` (`sort: {key, dir: 'asc'|'desc'}`); `formatBudget(n): string`; `matchesFilter(nodes, query)`.
 
-- [ ] **Step 1:** тесты domain: `formatBudget(12345678) === '12 345 678 руб.'`; `matchesFilter` — case-insensitive substring по поддереву (строка видна, если узел ИЛИ любой потомок подходит); debounce 250мс (fake timers). FAIL → реализация → PASS.
-- [ ] **Step 2:** тест сортировки: клик по столбцу — asc; повторный клик — без смены; двойной клик — desc; дефолт — по `name` asc.
-- [ ] **Step 3:** `MetricsTable`: столбцы «Подразделение, Уровень, Всего сотрудников, Бюджет суммарный, Средняя эффективность»; значения агрегатов; строки фильтрованного набора; клик по строке → `setSelectedId` (дерево подсвечивает и раскрывает путь к узлу); `tabular-nums` для чисел.
-- [ ] **Step 4:** `ViewToggle` + раскладка: `≥1280px` split-view (дерево слева, таблица справа), ниже — переключатель. Медиа-квери через `@media` в styled-components.
-- [ ] **Step 5:** интеграционный тест: фильтр «команда» → строки сокращаются; клик строки → выделение в дереве (роль/aria-selected).
-- [ ] **Step 6:** Commit + тег: `git commit -m "feat(table): aggregated metrics table with sort, filter and tree selection"`; `git tag step/2`.
+- [x] **Step 1:** тесты domain: `formatBudget(12345678) === '12 345 678 руб.'`; `matchesFilter` — case-insensitive substring по поддереву (строка видна, если узел ИЛИ любой потомок подходит); debounce 250мс (fake timers). FAIL → реализация → PASS.
+- [x] **Step 2:** тест сортировки: клик по столбцу — asc; повторный клик — без смены; двойной клик — desc; дефолт — по `name` asc.
+- [x] **Step 3:** `MetricsTable`: столбцы «Подразделение, Уровень, Всего сотрудников, Бюджет суммарный, Средняя эффективность»; значения агрегатов; строки фильтрованного набора; клик по строке → `setSelectedId` (дерево подсвечивает и раскрывает путь к узлу); `tabular-nums` для чисел.
+- [x] **Step 4:** `ViewToggle` + раскладка: `≥1280px` split-view (дерево слева, таблица справа), ниже — переключатель. Медиа-квери через `@media` в styled-components.
+- [x] **Step 5:** интеграционный тест: фильтр «команда» → строки сокращаются; клик строки → выделение в дереве (роль/aria-selected).
+- [x] **Step 6:** Commit + тег: `git commit -m "feat(table): aggregated metrics table with sort, filter and tree selection"`; `git tag step/2`.
 
 ---
 
+
+> **Статус:** этап 02 завершён (коммиты e0580b8..eeecdc6, тег `step/2`). Агрегация: 16 unit-тестов; таблица: сортировка/фильтр 250мс/связка с деревом/keyboard-reachable строки. См. `docs/PROGRESS.md`.
 ## Этап 03 — POLISH (тег `step/3`)
 
 ### Task 7: SSE-патчи
