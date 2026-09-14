@@ -6,6 +6,8 @@ export interface OrgTreeProps {
   forest: Forest
   expanded: ReadonlySet<string>
   onToggle: (id: string) => void
+  /** Выделенный узел (клик по строке таблицы) — aria-selected + подсветка. */
+  selectedId: string | null
 }
 
 const Tree = styled.ul`
@@ -18,11 +20,17 @@ const Tree = styled.ul`
  * Presentational recursive tree. Expansion state is owned by the caller via
  * `expanded` + `onToggle`; no data fetching and no selection logic here.
  */
-export function OrgTree({ forest, expanded, onToggle }: OrgTreeProps) {
+export function OrgTree({ forest, expanded, onToggle, selectedId }: OrgTreeProps) {
   return (
     <Tree role="tree" aria-label="Организационная структура">
       {forest.roots.map((root) => (
-        <OrgNodeRow key={root.id} node={root} expanded={expanded} onToggle={onToggle} />
+        <OrgNodeRow
+          key={root.id}
+          node={root}
+          expanded={expanded}
+          onToggle={onToggle}
+          selectedId={selectedId}
+        />
       ))}
     </Tree>
   )

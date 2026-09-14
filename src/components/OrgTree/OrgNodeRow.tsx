@@ -6,13 +6,18 @@ export interface OrgNodeRowProps {
   node: TreeNode
   expanded: ReadonlySet<string>
   onToggle: (id: string) => void
+  /** Выделенный узел (например, кликом по строке таблицы); подсвечивается. */
+  selectedId: string | null
 }
 
-const Row = styled.div`
+const Row = styled.div<{ $selected: boolean }>`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.sm};
   padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.sm}`};
+  border-radius: ${({ theme }) => theme.radii.sm};
+  background: ${({ $selected, theme }) =>
+    $selected ? `${theme.colors.text}1f` : 'transparent'};
 `
 
 const Chevron = styled.button<{ $open: boolean }>`
@@ -62,13 +67,17 @@ const Children = styled.ul`
   list-style: none;
 `
 
-export function OrgNodeRow({ node, expanded, onToggle }: OrgNodeRowProps) {
+export function OrgNodeRow({ node, expanded, onToggle, selectedId }: OrgNodeRowProps) {
   const hasChildren = node.children.length > 0
   const isOpen = expanded.has(node.id)
 
   return (
-    <li role="treeitem" aria-expanded={hasChildren ? isOpen : undefined}>
-      <Row>
+    <li
+      role="treeitem"
+      aria-expanded={hasChildren ? isOpen : undefined}
+      aria-selected={node.id === selectedId ? true : undefined}
+    >
+      <Row $selected={node.id === selectedId}>
         {hasChildren ? (
           <Chevron
             $open={isOpen}
@@ -88,7 +97,13 @@ export function OrgNodeRow({ node, expanded, onToggle }: OrgNodeRowProps) {
       {hasChildren && isOpen && (
         <Children role="group">
           {node.children.map((child) => (
-            <OrgNodeRow key={child.id} node={child} expanded={expanded} onToggle={onToggle} />
+            <OrgNodeRow
+              key={child.id}
+              node={child}
+              expanded={expanded}
+              onToggle={onToggle}
+              selectedId={selectedId}
+            />
           ))}
         </Children>
       )}

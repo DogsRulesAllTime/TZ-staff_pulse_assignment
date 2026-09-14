@@ -4,22 +4,9 @@ import { useState } from 'react'
 import { ThemeProvider } from 'styled-components'
 import { describe, expect, it } from 'vitest'
 import { theme } from '@/app/theme'
-import { buildForest, defaultExpandedIds, type Forest, type TreeNode } from '@/domain/tree'
+import { buildForest, defaultExpandedIds, type Forest } from '@/domain/tree'
+import { node, type NodeInput } from '@/test/factories'
 import { OrgTree } from './OrgTree'
-
-type NodeInput = Omit<TreeNode, 'children' | 'depth'>
-
-function node(partial: Partial<NodeInput> & Pick<NodeInput, 'id'>): NodeInput {
-  return {
-    name: partial.id,
-    parentId: null,
-    headcount: 1,
-    budget: 1000,
-    performance: 80,
-    updatedAt: '2025-01-01T00:00:00.000Z',
-    ...partial,
-  }
-}
 
 const fixture: NodeInput[] = [
   node({ id: 'div-1', name: 'Дивизион 1', headcount: 100, performance: 85 }),
@@ -28,13 +15,14 @@ const fixture: NodeInput[] = [
   node({ id: 'team-1-1-1', name: 'Команда 1.1.1', parentId: 'dept-1-1', headcount: 10, performance: 90 }),
 ]
 
-function Harness({ forest }: { forest: Forest }) {
+function Harness({ forest, selectedId = null }: { forest: Forest; selectedId?: string | null }) {
   const [expanded, setExpanded] = useState(() => defaultExpandedIds(forest))
   return (
     <ThemeProvider theme={theme}>
       <OrgTree
         forest={forest}
         expanded={expanded}
+        selectedId={selectedId}
         onToggle={(id) =>
           setExpanded((prev) => {
             const next = new Set(prev)
@@ -51,8 +39,8 @@ function Harness({ forest }: { forest: Forest }) {
   )
 }
 
-function renderFixture() {
-  return render(<Harness forest={buildForest(fixture)} />)
+function renderFixture(options: { selectedId?: string | null } = {}) {
+  return render(<Harness forest={buildForest(fixture)} {...options} />)
 }
 
 /** The treeitem <li> of a row, found via its unique visible name span. */
@@ -112,5 +100,12 @@ describe('OrgTree', () => {
     const team = rowOf('Команда 1.1.1')
     expect(team.querySelector('[data-chevron]')).toBeNull()
     expect(team).not.toHaveAttribute('aria-expanded')
+  })
+
+  it('marks the selected node with aria-selected and leaves others unmarked', () => {
+    renderFixture({ selectedId: 'team-1-1-1' })
+
+    expect(rowOf('Команда 1.1.1')).toHaveAttribute('aria-selected', 'true')
+    expect(rowOf('Отдел 1.1')).not.toHaveAttribute('aria-selected')
   })
 })
