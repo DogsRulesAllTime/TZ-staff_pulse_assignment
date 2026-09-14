@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import type { StructuredFilter } from '@/domain/search';
 
 export type DashboardView = 'tree' | 'table';
 
@@ -9,6 +10,13 @@ export interface UiState {
   setSelectedId: (id: string | null) => void;
   nameFilter: string;
   setNameFilter: (value: string) => void;
+  /**
+   * AI-поиск (Task 12): распознанный естественный запрос. `null` — запрос не
+   * распознан (обычный текстовый поиск через nameFilter) или строка пуста.
+   * Поле добавлено так, что прежний контракт useUiState не менялся.
+   */
+  structuredFilter: StructuredFilter | null;
+  setStructuredFilter: (filter: StructuredFilter | null) => void;
 }
 
 const UiStateContext = createContext<UiState | null>(null);
@@ -21,10 +29,20 @@ export function UiStateProvider({ children }: { children: ReactNode }) {
   const [view, setView] = useState<DashboardView>('tree');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [nameFilter, setNameFilter] = useState('');
+  const [structuredFilter, setStructuredFilter] = useState<StructuredFilter | null>(null);
 
   const value = useMemo(
-    () => ({ view, setView, selectedId, setSelectedId, nameFilter, setNameFilter }),
-    [view, selectedId, nameFilter],
+    () => ({
+      view,
+      setView,
+      selectedId,
+      setSelectedId,
+      nameFilter,
+      setNameFilter,
+      structuredFilter,
+      setStructuredFilter,
+    }),
+    [view, selectedId, nameFilter, structuredFilter],
   );
 
   return <UiStateContext.Provider value={value}>{children}</UiStateContext.Provider>;

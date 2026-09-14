@@ -31,8 +31,6 @@ function renderTable(overrides: Partial<Parameters<typeof MetricsTable>[0]> = {}
     onSortToggle: vi.fn<(key: MetricColumn) => void>(),
     selectedId: null,
     onSelect: vi.fn<(id: string) => void>(),
-    filter: '',
-    onFilterChange: vi.fn<(value: string) => void>(),
     ...overrides,
   };
   render(
@@ -129,14 +127,6 @@ describe('MetricsTable', () => {
 
     await user.keyboard(' ');
     expect(props.onSelect).toHaveBeenCalledWith('div-1');
-  });
-
-  it('propagates filter input changes', async () => {
-    const user = userEvent.setup();
-    const props = renderTable();
-
-    await user.type(screen.getByRole('searchbox', { name: 'Фильтр по названию' }), 'отдел');
-    expect(props.onFilterChange).toHaveBeenCalled();
   });
 
   it('shows an empty state when no rows match the filter', () => {

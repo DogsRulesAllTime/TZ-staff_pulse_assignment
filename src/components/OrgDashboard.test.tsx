@@ -242,3 +242,89 @@ describe('OrgDashboard', () => {
     expect(row.querySelector('td:nth-child(5)')).not.toHaveAttribute('data-changed');
   });
 });
+
+/**
+ * AI-поиск (Task 12). Агрегаты фикстуры (weightedPerformance, headcount-взвешенное):
+ * дивизион 1 — 63, отдел 1.1 — 66, отдел 1.2 — 33.75, команда 1.1.1 — 90, команда 1.2.1 — 45.
+ * Собственные performance: 85 / 60 / 30 / 90 / 45.
+ */
+describe('OrgDashboard AI-поиск', () => {
+  beforeEach(() => {
+    vi.mocked(useOrgData).mockReset();
+    stubMatchMedia(true); // split-view: дерево и таблица отрендерены одновременно
+  });
+
+  it('распознанный запрос: подпись «распознано», строки сужены, дерево приглушено', async () => {
+    const user = userEvent.setup();
+    setOrgData(buildForest(fixture));
+    renderDashboard();
+    expect(tableRows()).toHaveLength(5);
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Фильтр по названию' }),
+      'эффективность выше 55',
+    );
+
+    // Под полем — человекочитаемая сводка распознанного фильтра.
+    expect(screen.getByText(/распознано:/)).toBeInTheDocument();
+    expect(screen.getByText(/эффективность ≥ 55/)).toBeInTheDocument();
+
+    // Строки: проходят агрегаты (63 / 66 / 90); 33.75 и 45 отсечены.
+    await waitFor(() => {
+      expect(tableRows()).toHaveLength(3);
+    });
+    const visibleNames = tableRows().map((row) => row.cells[0].textContent);
+    expect(visibleNames).toEqual(['Дивизион 1', 'Команда 1.1.1', 'Отдел 1.1']);
+
+    // Дерево: узлы вне фильтра приглушены (opacity), но в структуре; проходят
+    // собственные значения (85 / 60 / 90), гаснут 30 и 45.
+    const dimmedOf = (name: string) => rowOf(name).querySelector('[data-dimmed]');
+    expect(dimmedOf('Отдел 1.2')).toHaveAttribute('data-dimmed', 'true');
+    expect(dimmedOf('Команда 1.2.1')).toHaveAttribute('data-dimmed', 'true');
+    expect(dimmedOf('Дивизион 1')).toHaveAttribute('data-dimmed', 'false');
+    expect(dimmedOf('Отдел 1.1')).toHaveAttribute('data-dimmed', 'false');
+    expect(dimmedOf('Команда 1.1.1')).toHaveAttribute('data-dimmed', 'false');
+  });
+
+  it('очистка ввода полностью сбрасывает и фильтр, и приглушение дерева', async () => {
+    const user = userEvent.setup();
+    setOrgData(buildForest(fixture));
+    renderDashboard();
+    const input = screen.getByRole('searchbox', { name: 'Фильтр по названию' });
+
+    await user.type(input, 'эффективность выше 55');
+    await waitFor(() => {
+      expect(tableRows()).toHaveLength(3);
+    });
+
+    await user.clear(input);
+    expect(screen.queryByText(/распознано:/)).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(tableRows()).toHaveLength(5);
+    });
+    for (const name of ['Дивизион 1', 'Отдел 1.1', 'Отдел 1.2', 'Команда 1.1.1', 'Команда 1.2.1']) {
+      expect(rowOf(name).querySelector('[data-dimmed]')).toHaveAttribute('data-dimmed', 'false');
+    }
+  });
+
+  it('нераспознанный запрос — подпись «обычный поиск», прежний текстовый путь', async () => {
+    const user = userEvent.setup();
+    setOrgData(buildForest(fixture));
+    renderDashboard();
+
+    await user.type(screen.getByRole('searchbox', { name: 'Фильтр по названию' }), '1.1');
+
+    expect(screen.getByText('обычный поиск')).toBeInTheDocument();
+    expect(screen.queryByText(/распознано:/)).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(tableRows()).toHaveLength(3);
+    });
+    // Текстовый фильтр дерево не приглушает (прежнее поведение).
+    expect(rowOf('Отдел 1.2').querySelector('[data-dimmed]')).toHaveAttribute(
+      'data-dimmed',
+      'false',
+    );
+  });
+});

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { defaultExpandedIds, type Forest } from '@/domain/tree';
-import { matchesFilter } from '@/domain/filter';
+import { matchesFilter, nodeMatchesFilter } from '@/domain/filter';
+import { matchesStructuredFilter, nodePassesStructured } from '@/domain/search';
 import { useOrgData } from '@/features/useOrgData';
 import { useCellFlash } from '@/features/useCellFlash';
 import type { AppliedPatch } from '@/features/useSsePatches';
@@ -9,6 +10,7 @@ import { UiStateProvider, useUiState } from '@/features/ui-state';
 import { useDebouncedValue } from '@/features/useDebouncedValue';
 import { useTableSort } from '@/features/useTableSort';
 import { SPLIT_VIEW_QUERY, useMediaQuery } from '@/features/useMediaQuery';
+import { AiSearchBar } from '@/components/AiSearchBar';
 import { OrgTree } from '@/components/OrgTree/OrgTree';
 import {
   MetricsTable,
@@ -71,7 +73,7 @@ function DashboardBody({ lastPatch }: { lastPatch: AppliedPatch | null }) {
   const { forest, aggregates, changedCells, status, refetch } = useOrgData(lastPatch);
   // Fade-out ячеек (Task 8): ячейки последнего патча мигают 1.5с.
   const flashingCells = useCellFlash(changedCells, lastPatch?.seq ?? 0);
-  const { view, selectedId, setSelectedId, nameFilter, setNameFilter } = useUiState();
+  const { view, selectedId, setSelectedId, nameFilter, structuredFilter } = useUiState();
   const splitView = useMediaQuery(SPLIT_VIEW_QUERY);
 
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set());
@@ -114,21 +116,61 @@ function DashboardBody({ lastPatch }: { lastPatch: AppliedPatch | null }) {
     });
   };
 
-  // Дебаунс фильтра — 250 мс (Global Constraints, точно).
+  // Дебаунс фильтра — 250 мс (Global Constraints, точно). Дебаунс относится к
+  // ТЕКСТОВОМУ пути (nameFilter); структурированный фильтр (AI-поиск, Task 12)
+  // применяется сразу — см. AiSearchBar.
   const debouncedFilter = useDebouncedValue(nameFilter, 250);
 
   // Строки таблицы = все узлы леса, отфильтрованные по поддереву (совпадение
-  // в имени узла ИЛИ любого потомка). Агрегаты в строках — полные агрегаты
-  // поддерева: фильтр их НЕ пересчитывает.
+  // в имени узла ИЛИ любого потомка). Композиция фильтров (Task 12): при
+  // активном structuredFilter подстроку имени даёт его nameSubstring
+  // (nameFilter при этом '' — иначе сырой текст запроса вырезал бы все строки),
+  // иначе — прежний текстовый путь. Числовые границы structuredFilter
+  // применяются к АГРЕГАТАМ строки (полное поддерево) — именно эти значения
+  // строка и показывает. Агрегаты фильтром НЕ пересчитываются.
   const metricRows = useMemo<MetricRow[]>(() => {
     if (!forest || !aggregates) return [];
-    const visible = matchesFilter([...forest.byId.values()], debouncedFilter);
+    const nameQuery = structuredFilter?.nameSubstring ?? debouncedFilter;
+    const visible = matchesFilter([...forest.byId.values()], nameQuery);
     return visible.flatMap((node) => {
       const agg = aggregates.get(node.id);
       if (!agg) return []; // остров вне корней — агрегатов нет (graceful degradation)
+      if (
+        structuredFilter &&
+        !matchesStructuredFilter(
+          {
+            headcount: agg.totalHeadcount,
+            budget: agg.totalBudget,
+            performance: agg.weightedPerformance,
+          },
+          structuredFilter,
+        )
+      ) {
+        return [];
+      }
       return [{ id: node.id, name: node.name, depth: node.depth, ...agg }];
     });
-  }, [forest, aggregates, debouncedFilter]);
+  }, [forest, aggregates, debouncedFilter, structuredFilter]);
+
+  // Приглушение дерева (Task 12): узлы вне структурированного фильтра получают
+  // opacity вместо скрытия — структура дерева остаётся целой. Границы чисел —
+  // по СОБСТВЕННЫМ значениям узла (то, что дерево показывает), nameSubstring —
+  // по поддереву (предки совпавшего узла не гаснут). Если активен и текстовый
+  // nameFilter — дерево гаснет по объединённому предикату (AND).
+  const dimmedIds = useMemo<ReadonlySet<string>>(() => {
+    if (!forest || !structuredFilter) {
+      return new Set<string>();
+    }
+    const dimmed = new Set<string>();
+    for (const node of forest.byId.values()) {
+      if (!nodePassesStructured(node, structuredFilter)) {
+        dimmed.add(node.id);
+      } else if (debouncedFilter.trim() !== '' && !nodeMatchesFilter(node, debouncedFilter)) {
+        dimmed.add(node.id);
+      }
+    }
+    return dimmed;
+  }, [forest, structuredFilter, debouncedFilter]);
 
   // Дефолт — по name asc; клик по столбцу — asc, повторный клик / двойной — desc.
   const { sorted, sort, toggleSort } = useTableSort<MetricRow, MetricColumn>(metricRows, {
@@ -138,7 +180,13 @@ function DashboardBody({ lastPatch }: { lastPatch: AppliedPatch | null }) {
 
   if (status === 'ready' && forest) {
     const tree = (
-      <OrgTree forest={forest} expanded={expanded} onToggle={toggle} selectedId={selectedId} />
+      <OrgTree
+        forest={forest}
+        expanded={expanded}
+        onToggle={toggle}
+        selectedId={selectedId}
+        dimmedIds={dimmedIds}
+      />
     );
     const table = (
       <MetricsTable
@@ -147,14 +195,15 @@ function DashboardBody({ lastPatch }: { lastPatch: AppliedPatch | null }) {
         onSortToggle={toggleSort}
         selectedId={selectedId}
         onSelect={setSelectedId}
-        filter={nameFilter}
-        onFilterChange={setNameFilter}
         flashingCells={flashingCells}
       />
     );
     return (
       <Shell>
         <ViewToggle />
+        {/* Единая строка поиска (Task 12): естественный язык → структурированный
+            фильтр, fallback — обычный текстовый поиск. Видна в обоих видах. */}
+        <AiSearchBar />
         <Panes>
           {splitView ? (
             <>

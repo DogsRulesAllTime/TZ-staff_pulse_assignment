@@ -8,15 +8,28 @@ export interface OrgNodeRowProps {
   onToggle: (id: string) => void;
   /** Выделенный узел (например, кликом по строке таблицы); подсвечивается. */
   selectedId: string | null;
+  /**
+   * AI-поиск (Task 12): id узлов вне структурированного фильтра — такие узлы
+   * приглушаются (opacity), но остаются видимыми: структура дерева цела.
+   */
+  dimmedIds?: ReadonlySet<string>;
 }
 
-const Row = styled.div<{ $selected: boolean }>`
+const Row = styled.div<{ $selected: boolean; $dimmed: boolean }>`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.sm};
   padding: ${({ theme }) => `${theme.spacing.xs} ${theme.spacing.sm}`};
   border-radius: ${({ theme }) => theme.radii.sm};
   background: ${({ $selected, theme }) => ($selected ? `${theme.colors.text}1f` : 'transparent')};
+  /* Приглушение (Task 12): узел вне структурированного фильтра остаётся в
+     дереве — структура не ломается, меняется только акцент. */
+  opacity: ${({ $dimmed }) => ($dimmed ? 0.4 : 1)};
+  transition: opacity 0.15s ease;
+
+  @media ${({ theme }) => theme.motion} {
+    transition: none;
+  }
 `;
 
 const Chevron = styled.button<{ $open: boolean }>`
@@ -89,9 +102,10 @@ const Reveal = styled.div<{ $open: boolean }>`
   }
 `;
 
-export function OrgNodeRow({ node, expanded, onToggle, selectedId }: OrgNodeRowProps) {
+export function OrgNodeRow({ node, expanded, onToggle, selectedId, dimmedIds }: OrgNodeRowProps) {
   const hasChildren = node.children.length > 0;
   const isOpen = expanded.has(node.id);
+  const dimmed = dimmedIds?.has(node.id) ?? false;
 
   return (
     <li
@@ -99,7 +113,7 @@ export function OrgNodeRow({ node, expanded, onToggle, selectedId }: OrgNodeRowP
       aria-expanded={hasChildren ? isOpen : undefined}
       aria-selected={node.id === selectedId ? true : undefined}
     >
-      <Row $selected={node.id === selectedId}>
+      <Row $selected={node.id === selectedId} $dimmed={dimmed} data-dimmed={dimmed}>
         {hasChildren ? (
           <Chevron
             $open={isOpen}
@@ -127,6 +141,7 @@ export function OrgNodeRow({ node, expanded, onToggle, selectedId }: OrgNodeRowP
                 expanded={expanded}
                 onToggle={onToggle}
                 selectedId={selectedId}
+                dimmedIds={dimmedIds}
               />
             ))}
           </Children>

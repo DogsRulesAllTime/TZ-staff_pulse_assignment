@@ -30,8 +30,6 @@ export interface MetricsTableProps {
   onSortToggle: (key: MetricColumn) => void;
   selectedId: string | null;
   onSelect: (id: string) => void;
-  filter: string;
-  onFilterChange: (value: string) => void;
   /**
    * Fade-out (Task 8): `cellFlashKey → счётчик вспышек` из useCellFlash.
    * Ключ есть → ячейка мигает; чётность счётчика выбирает одну из двух
@@ -60,20 +58,6 @@ const Wrapper = styled.div`
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.sm};
   min-width: 0;
-`;
-
-const FilterInput = styled.input`
-  padding: ${({ theme }) => `${theme.spacing.sm} ${theme.spacing.md}`};
-  border: 1px solid ${({ theme }) => theme.colors.textMuted}55;
-  border-radius: ${({ theme }) => theme.radii.md};
-  background: ${({ theme }) => theme.colors.surface};
-  color: ${({ theme }) => theme.colors.text};
-  font: inherit;
-
-  &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.text};
-    outline-offset: 1px;
-  }
 `;
 
 const Table = styled.table`
@@ -215,10 +199,11 @@ const EmptyRow = styled.td`
 
 /**
  * Presentational таблица агрегатов. Фильтрация и сортировка выполняются
- * выше (useDebouncedValue + useTableSort); здесь — отображение и колбэки.
- * Агрегаты в строках — полные агрегаты поддерева: фильтр их не пересчитывает.
- * Fade-out (Task 8): data-changed ставится ТОЛЬКО на мигающие числовые ячейки
- * (headcount/budget/performance конкретного узла), не на строку и не на таблицу.
+ * выше (AiSearchBar + useDebouncedValue + useTableSort); здесь — отображение
+ * и колбэки. Агрегаты в строках — полные агрегаты поддерева: фильтр их не
+ * пересчитывает. Fade-out (Task 8): data-changed ставится ТОЛЬКО на мигающие
+ * числовые ячейки (headcount/budget/performance конкретного узла), не на
+ * строку и не на таблицу.
  */
 const NUMERIC_FIELDS: readonly FlashField[] = [
   'totalHeadcount',
@@ -269,8 +254,6 @@ export function MetricsTable({
   onSortToggle,
   selectedId,
   onSelect,
-  filter,
-  onFilterChange,
   flashingCells,
 }: MetricsTableProps) {
   const flashAttrs = (nodeId: string, field: FlashField) => {
@@ -285,13 +268,6 @@ export function MetricsTable({
 
   return (
     <Wrapper>
-      <FilterInput
-        type="search"
-        value={filter}
-        onChange={(event) => onFilterChange(event.target.value)}
-        placeholder="Фильтр по названию"
-        aria-label="Фильтр по названию"
-      />
       {/* role="grid": aria-selected на <tr> валиден в ARIA только внутри grid/treegrid. */}
       <Table role="grid">
         <thead>

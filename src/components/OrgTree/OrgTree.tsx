@@ -8,6 +8,11 @@ export interface OrgTreeProps {
   onToggle: (id: string) => void;
   /** Выделенный узел (клик по строке таблицы) — aria-selected + подсветка. */
   selectedId: string | null;
+  /**
+   * AI-поиск (Task 12): узлы вне структурированного фильтра приглушаются
+   * (opacity), а не скрываются — структура дерева остаётся целой.
+   */
+  dimmedIds?: ReadonlySet<string>;
 }
 
 const Tree = styled.ul`
@@ -20,7 +25,7 @@ const Tree = styled.ul`
  * Presentational recursive tree. Expansion state is owned by the caller via
  * `expanded` + `onToggle`; no data fetching and no selection logic here.
  */
-export function OrgTree({ forest, expanded, onToggle, selectedId }: OrgTreeProps) {
+export function OrgTree({ forest, expanded, onToggle, selectedId, dimmedIds }: OrgTreeProps) {
   return (
     <Tree role="tree" aria-label="Организационная структура">
       {forest.roots.map((root) => (
@@ -30,6 +35,7 @@ export function OrgTree({ forest, expanded, onToggle, selectedId }: OrgTreeProps
           expanded={expanded}
           onToggle={onToggle}
           selectedId={selectedId}
+          dimmedIds={dimmedIds}
         />
       ))}
     </Tree>
