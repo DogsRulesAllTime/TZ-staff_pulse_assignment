@@ -1,4 +1,5 @@
 import styled, { createGlobalStyle } from 'styled-components'
+import { OrgDashboard } from '@/components/OrgDashboard'
 
 const GlobalStyle = createGlobalStyle`
   *, *::before, *::after {
@@ -35,6 +36,7 @@ export function App() {
       <Header>
         <Title>Staff Pulse</Title>
       </Header>
+      <OrgDashboard />
     </>
   )
 }
