@@ -65,6 +65,29 @@ const Children = styled.ul`
   margin: 0;
   padding: 0;
   list-style: none;
+  /* Внутренняя часть grid-reveal (Task 9): min-height: 0 позволяет строке
+     0fr сжаться до нуля, overflow: hidden — обрезать содержимое при анимации. */
+  min-height: 0;
+  overflow: hidden;
+`
+
+/**
+ * Reveal-обёртка анимации раскрытия (Task 9). Выбор подхода: grid-rows, а не
+ * измерение высоты — проще и без JS: строка grid-template-rows 0fr → 1fr
+ * плавно раскрывает содержимое, collapse идёт в обратную сторону.
+ * Доступность: поддерево монтируется ПЕРСИСТЕНТНО (не условно), свёрнутое
+ * содержимое помечается inert — фокусируемые элементы внутри выпадают из
+ * tab-порядка и скрыты от вспомогательных технологий; состояние узла по-прежнему
+ * передаёт aria-expanded на шевроне. prefers-reduced-motion — transition: none.
+ */
+const Reveal = styled.div<{ $open: boolean }>`
+  display: grid;
+  grid-template-rows: ${({ $open }) => ($open ? '1fr' : '0fr')};
+  transition: grid-template-rows 0.2s ease;
+
+  @media ${({ theme }) => theme.motion} {
+    transition: none;
+  }
 `
 
 export function OrgNodeRow({ node, expanded, onToggle, selectedId }: OrgNodeRowProps) {
@@ -94,18 +117,20 @@ export function OrgNodeRow({ node, expanded, onToggle, selectedId }: OrgNodeRowP
         <Headcount>{node.headcount} чел.</Headcount>
         <PerformanceDot value={node.performance} />
       </Row>
-      {hasChildren && isOpen && (
-        <Children role="group">
-          {node.children.map((child) => (
-            <OrgNodeRow
-              key={child.id}
-              node={child}
-              expanded={expanded}
-              onToggle={onToggle}
-              selectedId={selectedId}
-            />
-          ))}
-        </Children>
+      {hasChildren && (
+        <Reveal $open={isOpen} data-reveal inert={!isOpen}>
+          <Children role="group">
+            {node.children.map((child) => (
+              <OrgNodeRow
+                key={child.id}
+                node={child}
+                expanded={expanded}
+                onToggle={onToggle}
+                selectedId={selectedId}
+              />
+            ))}
+          </Children>
+        </Reveal>
       )}
     </li>
   )

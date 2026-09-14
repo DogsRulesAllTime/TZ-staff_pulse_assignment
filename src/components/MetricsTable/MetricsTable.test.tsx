@@ -1,7 +1,7 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ThemeProvider } from 'styled-components'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { theme } from '@/app/theme'
 import { MetricsTable, type MetricRow } from './MetricsTable'
 
@@ -169,5 +169,155 @@ describe('MetricsTable', () => {
     const headcountCell = within(row).getByText('110').closest('td')!
     expect(headcountCell).toHaveAttribute('data-changed', 'true')
     expect(headcountCell).toHaveAttribute('data-flash-parity', 'even')
+  })
+})
+
+describe('MetricsTable keyboard navigation', () => {
+  const rows3: MetricRow[] = [
+    { id: 'div-1', name: 'Дивизион 1', depth: 0, totalHeadcount: 110, totalBudget: 1_600_000, weightedPerformance: 67 },
+    { id: 'dept-1-1', name: 'Отдел 1.1', depth: 1, totalHeadcount: 10, totalBudget: 650_000, weightedPerformance: 54 },
+    { id: 'dept-1-2', name: 'Отдел 1.2', depth: 1, totalHeadcount: 30, totalBudget: 300_000, weightedPerformance: 40 },
+  ]
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  function rowOf(name: string): HTMLTableRowElement {
+    return screen.getByRole('row', { name }) as HTMLTableRowElement
+  }
+
+  /** jsdom не реализует scrollIntoView — ставим шпион вместо отсутствующего метода. */
+  function stubScrollIntoView() {
+    const spy = vi.fn()
+    Object.defineProperty(Element.prototype, 'scrollIntoView', {
+      configurable: true,
+      writable: true,
+      value: spy,
+    })
+    return spy
+  }
+
+  /** Как stubScrollIntoView, но запоминает this (элемент, на котором вызван). */
+  function stubScrollIntoViewWithTarget() {
+    const targets: Element[] = []
+    const spy = vi.fn(function (this: Element) {
+      targets.push(this)
+    })
+    Object.defineProperty(Element.prototype, 'scrollIntoView', {
+      configurable: true,
+      writable: true,
+      value: spy,
+    })
+    return { spy, targets }
+  }
+
+  it('ArrowDown перемещает реальный DOM-фокус на следующую строку', () => {
+    stubScrollIntoView()
+    renderTable({ rows: rows3 })
+
+    const first = rowOf('Дивизион 1')
+    first.focus()
+    expect(first).toHaveFocus()
+
+    fireEvent.keyDown(first, { key: 'ArrowDown' })
+    expect(rowOf('Отдел 1.1')).toHaveFocus()
+  })
+
+  it('ArrowUp перемещает фокус на предыдущую строку', () => {
+    stubScrollIntoView()
+    renderTable({ rows: rows3 })
+
+    const second = rowOf('Отдел 1.1')
+    second.focus()
+    fireEvent.keyDown(second, { key: 'ArrowUp' })
+    expect(rowOf('Дивизион 1')).toHaveFocus()
+  })
+
+  it('ArrowDown на последней строке остаётся на ней', () => {
+    stubScrollIntoView()
+    renderTable({ rows: rows3 })
+
+    const last = rowOf('Отдел 1.2')
+    last.focus()
+    fireEvent.keyDown(last, { key: 'ArrowDown' })
+    expect(last).toHaveFocus()
+  })
+
+  it('ArrowUp на первой строке остаётся на ней', () => {
+    stubScrollIntoView()
+    renderTable({ rows: rows3 })
+
+    const first = rowOf('Дивизион 1')
+    first.focus()
+    fireEvent.keyDown(first, { key: 'ArrowUp' })
+    expect(first).toHaveFocus()
+  })
+
+  it('Home → первая строка, End → последняя', () => {
+    stubScrollIntoView()
+    renderTable({ rows: rows3 })
+
+    const first = rowOf('Дивизион 1')
+    const last = rowOf('Отдел 1.2')
+
+    last.focus()
+    fireEvent.keyDown(last, { key: 'Home' })
+    expect(first).toHaveFocus()
+
+    first.focus()
+    fireEvent.keyDown(first, { key: 'End' })
+    expect(last).toHaveFocus()
+  })
+
+  it('обработанные клавиши предотвращают действие по умолчанию (нет скролла страницы)', () => {
+    stubScrollIntoView()
+    renderTable({ rows: rows3 })
+
+    const pd = vi.spyOn(KeyboardEvent.prototype, 'preventDefault')
+    const row = rowOf('Дивизион 1')
+    row.focus()
+    for (const key of ['ArrowDown', 'ArrowUp', 'Home', 'End']) {
+      pd.mockClear()
+      fireEvent.keyDown(row, { key })
+      expect(pd).toHaveBeenCalledTimes(1)
+    }
+  })
+
+  it('необработанные клавиши (ArrowLeft/ArrowRight) не перехватываются', () => {
+    stubScrollIntoView()
+    renderTable({ rows: rows3 })
+
+    const pd = vi.spyOn(KeyboardEvent.prototype, 'preventDefault')
+    const first = rowOf('Дивизион 1')
+    first.focus()
+    fireEvent.keyDown(first, { key: 'ArrowRight' })
+    fireEvent.keyDown(first, { key: 'ArrowLeft' })
+    expect(pd).not.toHaveBeenCalled()
+    expect(first).toHaveFocus()
+  })
+
+  it('после перехода фокуса вызывается scrollIntoView({block:"nearest"}) на новой строке', () => {
+    const { spy, targets } = stubScrollIntoViewWithTarget()
+    renderTable({ rows: rows3 })
+
+    const first = rowOf('Дивизион 1')
+    first.focus()
+    fireEvent.keyDown(first, { key: 'ArrowDown' })
+
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith({ block: 'nearest' })
+    expect(targets[0]).toBe(rowOf('Отдел 1.1'))
+  })
+
+  it('Enter по-прежнему выделяет строку (регресс клавиатурного выделения)', async () => {
+    stubScrollIntoView()
+    const user = userEvent.setup()
+    const props = renderTable({ rows: rows3 })
+
+    const row = rowOf('Отдел 1.1')
+    row.focus()
+    await user.keyboard('{Enter}')
+    expect(props.onSelect).toHaveBeenCalledWith('dept-1-1')
   })
 })

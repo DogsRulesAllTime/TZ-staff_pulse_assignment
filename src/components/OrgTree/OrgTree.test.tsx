@@ -86,11 +86,16 @@ describe('OrgTree', () => {
     expect(dept).toHaveAttribute('aria-expanded', 'true')
 
     await user.click(dept.querySelector('[data-chevron]')!)
-    expect(screen.queryByText('Команда 1.1.1')).not.toBeInTheDocument()
+    // Анимация (Task 9): поддерево остаётся в DOM (persistent mount),
+    // но скрывается инертностью — фокусируемые элементы внутри выпадают
+    // из tab-порядка, содержимое недоступно вспомогательным технологиям.
+    expect(screen.getByText('Команда 1.1.1')).toBeInTheDocument()
+    expect(dept.querySelector('[data-reveal]')).toHaveAttribute('inert')
     expect(rowOf('Отдел 1.1')).toHaveAttribute('aria-expanded', 'false')
 
     await user.click(rowOf('Отдел 1.1').querySelector('[data-chevron]')!)
     expect(screen.getByText('Команда 1.1.1')).toBeInTheDocument()
+    expect(rowOf('Отдел 1.1').querySelector('[data-reveal]')).not.toHaveAttribute('inert')
     expect(rowOf('Отдел 1.1')).toHaveAttribute('aria-expanded', 'true')
   })
 
@@ -107,5 +112,59 @@ describe('OrgTree', () => {
 
     expect(rowOf('Команда 1.1.1')).toHaveAttribute('aria-selected', 'true')
     expect(rowOf('Отдел 1.1')).not.toHaveAttribute('aria-selected')
+  })
+})
+
+/** Объединённый cssText всех стилевых правил, касающихся классов элемента. */
+function cssRulesFor(el: Element): string[] {
+  const classes = Array.from(el.classList)
+  const out: string[] = []
+  for (const sheet of Array.from(document.styleSheets)) {
+    let rules: CSSRuleList
+    try {
+      rules = sheet.cssRules
+    } catch {
+      continue
+    }
+    for (const rule of Array.from(rules)) {
+      const media = rule as CSSMediaRule
+      if (media.media?.length) {
+        for (const inner of Array.from(media.cssRules)) {
+          const selector = (inner as CSSStyleRule).selectorText
+          if (selector && classes.some((c) => selector.includes(c))) out.push(rule.cssText)
+        }
+      } else {
+        const selector = (rule as CSSStyleRule).selectorText
+        if (selector && classes.some((c) => selector.includes(c))) out.push(rule.cssText)
+      }
+    }
+  }
+  return out
+}
+
+describe('OrgTree expand animation', () => {
+  it('leaf node renders without a reveal wrapper (nothing to animate)', () => {
+    renderFixture()
+
+    expect(rowOf('Команда 1.1.1').querySelector('[data-reveal]')).toBeNull()
+    expect(rowOf('Дивизион 1').querySelector('[data-reveal]')).not.toBeNull()
+  })
+
+  it('reveal wrapper animates via grid-template-rows 0fr → 1fr transition', () => {
+    renderFixture()
+
+    const reveal = rowOf('Отдел 1.1').querySelector('[data-reveal]')!
+    const css = cssRulesFor(reveal).join('\n')
+    expect(css).toContain('grid-template-rows')
+    expect(css).toContain('transition')
+  })
+
+  it('reduced motion: reveal wrapper has a prefers-reduced-motion override disabling transition', () => {
+    renderFixture()
+
+    const reveal = rowOf('Отдел 1.1').querySelector('[data-reveal]')!
+    const css = cssRulesFor(reveal).join('\n')
+    expect(css).toContain('prefers-reduced-motion')
+    expect(css).toMatch(/prefers-reduced-motion[^{]*\{[^}]*transition:\s*none/)
   })
 })

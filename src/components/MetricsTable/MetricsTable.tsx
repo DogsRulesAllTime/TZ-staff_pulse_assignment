@@ -1,4 +1,5 @@
 import styled, { keyframes } from 'styled-components'
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import type { SortState } from '@/features/useTableSort'
 import { formatBudget, formatPerformance } from '@/domain/format'
 import { cellFlashKey, type FlashField } from '@/features/useCellFlash'
@@ -222,6 +223,40 @@ const EmptyRow = styled.td`
  */
 const NUMERIC_FIELDS: readonly FlashField[] = ['totalHeadcount', 'totalBudget', 'weightedPerformance']
 
+/**
+ * Клавиши построчной навигации (Task 9). ArrowLeft/ArrowRight намеренно
+ * не перехватываются (YAGNI по заданию).
+ */
+const NAV_KEYS = new Set(['ArrowDown', 'ArrowUp', 'Home', 'End'])
+
+/**
+ * Roving-навигация по видимым строкам таблицы: ArrowUp/ArrowDown →
+ * предыдущая/следующая строка, Home → первая, End → последняя. Фокус —
+ * реальный DOM-фокус (element.focus()); страница не скроллится
+ * (preventDefault на обработанных клавишах); строка вне вьюпорта
+ * подтягивается через scrollIntoView({block:'nearest'}).
+ */
+function handleRowNavKey(event: ReactKeyboardEvent<HTMLTableRowElement>) {
+  if (!NAV_KEYS.has(event.key)) return
+  const tbody = event.currentTarget.closest('tbody')
+  if (!tbody) return
+  const rowEls = Array.from(tbody.querySelectorAll<HTMLTableRowElement>('tr[data-row-id]'))
+  const current = rowEls.indexOf(event.currentTarget)
+  if (rowEls.length === 0 || current === -1) return
+  const next =
+    event.key === 'ArrowDown'
+      ? Math.min(current + 1, rowEls.length - 1)
+      : event.key === 'ArrowUp'
+        ? Math.max(current - 1, 0)
+        : event.key === 'Home'
+          ? 0
+          : rowEls.length - 1
+  event.preventDefault()
+  const target = rowEls[next]
+  target.focus()
+  target.scrollIntoView({ block: 'nearest' })
+}
+
 export function MetricsTable({
   rows,
   sort,
@@ -295,7 +330,9 @@ export function MetricsTable({
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault()
                     onSelect(row.id)
+                    return
                   }
+                  handleRowNavKey(event)
                 }}
               >
                 <Td>

@@ -98,7 +98,9 @@ describe('OrgDashboard', () => {
     const { rerender } = renderDashboard()
 
     await user.click(rowOf('Отдел 1.1').querySelector('[data-chevron]')!)
-    expect(screen.queryByText('Команда 1.1.1')).not.toBeInTheDocument()
+    // Анимация (Task 9): поддерево остаётся в DOM persistent-mount, но инертно.
+    expect(screen.getByText('Команда 1.1.1')).toBeInTheDocument()
+    expect(rowOf('Отдел 1.1').querySelector<HTMLDivElement>('[data-reveal]')).toHaveAttribute('inert')
 
     // Refetch (refocus, staleTime) returns a fresh forest object of the same shape.
     setOrgData(buildForest(fixture))
@@ -109,7 +111,7 @@ describe('OrgDashboard', () => {
     )
 
     expect(rowOf('Отдел 1.1')).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.queryByText('Команда 1.1.1')).not.toBeInTheDocument()
+    expect(rowOf('Отдел 1.1').querySelector<HTMLDivElement>('[data-reveal]')).toHaveAttribute('inert')
   })
 
   it('renders both panes in split-view (≥1280px)', () => {
@@ -147,14 +149,18 @@ describe('OrgDashboard', () => {
     renderDashboard()
 
     // Сворачиваем отдел, чтобы проверить раскрытие пути к узлу (в таблице имя остаётся).
+    // Анимация (Task 9): поддерево в DOM, но инертно — считать его скрытым.
     await user.click(rowOf('Отдел 1.1').querySelector('[data-chevron]')!)
-    expect(within(screen.getByRole('tree')).queryByText('Команда 1.1.1')).not.toBeInTheDocument()
+    const deptReveal = rowOf('Отдел 1.1').querySelector<HTMLDivElement>('[data-reveal]')!
+    expect(deptReveal).toHaveAttribute('inert')
+    expect(within(deptReveal).getByText('Команда 1.1.1')).toBeInTheDocument()
 
     await user.click(within(screen.getByRole('table')).getByText('Команда 1.1.1'))
 
     expect(rowOf('Команда 1.1.1')).toHaveAttribute('aria-selected', 'true')
     expect(rowOf('Отдел 1.1')).toHaveAttribute('aria-expanded', 'true')
     expect(within(screen.getByRole('tree')).getByText('Команда 1.1.1')).toBeInTheDocument()
+    expect(rowOf('Отдел 1.1').querySelector<HTMLDivElement>('[data-reveal]')).not.toHaveAttribute('inert')
   })
 
   it('flips table sort to descending on header double-click', async () => {
