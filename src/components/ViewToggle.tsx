@@ -24,7 +24,7 @@ const Button = styled.button<{ $active: boolean }>`
   font: inherit;
   cursor: pointer;
 
-  &:hover {
+  &:hover:not([aria-pressed='true']) {
     color: ${({ theme }) => theme.colors.text};
   }
 `;
