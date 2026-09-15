@@ -80,6 +80,18 @@ describe('parseNaturalQuery', () => {
     expect(parseNaturalQuery('бюджет больше 1 000 000')).toEqual({ minBudget: 1_000_000 });
   });
 
+  it('parses full word forms «миллион/миллиарда» and «сотрудников»', () => {
+    // Живой кейс от пользователя: словоформа «миллиона» раньше не узнавалась.
+    expect(parseNaturalQuery('бюджет больше миллиона')).toEqual({ minBudget: 1_000_000 });
+    expect(parseNaturalQuery('больше 2 миллиона рублей')).toEqual({ minBudget: 2_000_000 });
+    expect(parseNaturalQuery('команды с бюджетом больше миллиона')).toEqual({
+      nameSubstring: 'команда',
+      minBudget: 1_000_000,
+    });
+    expect(parseNaturalQuery('бюджет больше 1 миллиарда')).toEqual({ minBudget: 1_000_000_000 });
+    expect(parseNaturalQuery('больше 30 сотрудников')).toEqual({ minHeadcount: 30 });
+  });
+
   it('parses the RU decimal comma («1,5 млн» → 1.5e6)', () => {
     expect(parseNaturalQuery('бюджет больше 1,5 млн')).toEqual({ minBudget: 1_500_000 });
   });

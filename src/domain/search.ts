@@ -49,11 +49,12 @@ const NUMBER = String.raw`\d+(?:[ ]\d{3})*(?:[.,]\d+)?`;
 const MORE = 'больше|более|свыше';
 const LESS = 'меньше|менее';
 // Денежные единицы (не «руб» как единица множителя — множитель 1): отрицательный
-// lookahead отсекает «к» внутри слов («5 команд» ≠ «5к»).
-const MONEY_UNIT = String.raw`(?:\s*(млрд|млн|тыс[а-яё]*|руб[а-яё]*|к))?(?:\s+руб[а-яё]*)?`;
-const MONEY_UNIT_REQUIRED = String.raw`\s*(млрд|млн|тыс[а-яё]*|руб[а-яё]*|к)(?:\s+руб[а-яё]*)?(?![а-яё])`;
-// Единицы численности: «человек/человека/…», «чел.», «людей/людям/…».
-const PEOPLE_UNIT = String.raw`(?:\s*(челов[а-яё]*|чел(?![а-яё])|люд[а-яё]*))`;
+// lookahead отсекает «к» внутри слов («5 команд» ≠ «5к»); полные слова
+// «миллион/миллиард» (+ словоформы) наряду с сокращениями.
+const MONEY_UNIT = String.raw`(?:\s*(миллиард[а-яё]*|миллион[а-яё]*|млрд|млн|тыс[а-яё]*|руб[а-яё]*|к))?(?:\s+руб[а-яё]*)?`;
+const MONEY_UNIT_REQUIRED = String.raw`\s*(миллиард[а-яё]*|миллион[а-яё]*|млрд|млн|тыс[а-яё]*|руб[а-яё]*|к)(?:\s+руб[а-яё]*)?(?![а-яё])`;
+// Единицы численности: «человек/человека/…», «чел.», «людей/людям/…», «сотрудник(ов)/…».
+const PEOPLE_UNIT = String.raw`(?:\s*(челов[а-яё]*|чел(?![а-яё])|люд[а-яё]*|сотрудник[а-яё]*))`;
 // Слова-связки, которые не мешают распознаванию.
 const STOP_WORDS = new Set([
   'с',
@@ -90,8 +91,8 @@ const STOP_WORDS = new Set([
 /** Множитель денежной единицы; рубли/отсутствие единицы → 1. */
 function unitFactor(unit: string | undefined): number {
   if (!unit) return 1;
-  if (unit === 'млрд') return 1e9;
-  if (unit === 'млн') return 1e6;
+  if (unit === 'млрд' || unit.startsWith('миллиард')) return 1e9;
+  if (unit === 'млн' || unit.startsWith('миллион')) return 1e6;
   if (unit === 'к' || unit.startsWith('тыс')) return 1e3;
   return 1; // руб/рубля/рублей и т.п.
 }
@@ -141,14 +142,15 @@ export function parseNaturalQuery(query: string): StructuredFilter | null {
     }
   }
 
-  // 2a. Бюджет: «бюджет больше/меньше N (млн|млрд|тыс|к|руб…)».
+  // 2a. Бюджет: «бюджет больше/меньше N (млн|млрд|тыс|к|руб…)». Число может
+  // опускаться перед шкальной единицей («больше миллиона» = ≥ 1 млн).
   const budget = text.match(
-    new RegExp(`бюджет[а-яё]*\\s+(${MORE}|${LESS})\\s*(${NUMBER})${MONEY_UNIT}`),
+    new RegExp(`бюджет[а-яё]*\\s+(${MORE}|${LESS})\\s*(${NUMBER})?${MONEY_UNIT}`),
   );
-  if (budget) {
+  if (budget && (budget[2] || unitFactor(budget[3]) > 1)) {
     cut(budget);
-    // Группы: 1 — сравнение, 2 — число, 3 — денежная единица (внутри MONEY_UNIT).
-    const value = parseNumber(budget[2]) * unitFactor(budget[3]);
+    // Группы: 1 — сравнение, 2 — число (может отсутствовать), 3 — денежная единица.
+    const value = parseNumber(budget[2] ?? '1') * unitFactor(budget[3]);
     if (parseComparison(budget[1]) === 'min') {
       filter.minBudget = value;
     } else {
@@ -156,11 +158,12 @@ export function parseNaturalQuery(query: string): StructuredFilter | null {
     }
   } else {
     // 2b. Деньги без слова «бюджет» — только при явной денежной единице
-    // («больше 2 млн рублей»), иначе число уйдёт в headcount/эффективность.
-    const money = text.match(new RegExp(`(${MORE}|${LESS})\\s*(${NUMBER})${MONEY_UNIT_REQUIRED}`));
-    if (money) {
+    // («больше 2 млн рублей», «больше миллиона»), иначе число уйдёт в
+    // headcount/эффективность. Без числа — только шкальная единица (млн/млрд).
+    const money = text.match(new RegExp(`(${MORE}|${LESS})\\s*(${NUMBER})?${MONEY_UNIT_REQUIRED}`));
+    if (money && (money[2] || unitFactor(money[3]) > 1)) {
       cut(money);
-      const value = parseNumber(money[2]) * unitFactor(money[3]);
+      const value = parseNumber(money[2] ?? '1') * unitFactor(money[3]);
       if (parseComparison(money[1]) === 'min') {
         filter.minBudget = value;
       } else {
