@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+# Клиент: сборка SPA в node, раздача готовой статики в nginx (multi-stage).
+
+# --- Stage 1: сборка (tsc + typecheck:node + vite build + check:size) ---
+FROM node:22-alpine AS build
+
+WORKDIR /app
+
+# pnpm 9: в package.json нет поля packageManager, версию активируем явно
+# (совпадает с pnpm-lock.yaml v9).
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+
+# Слой зависимостей: меняется только при смене lockfile.
+COPY package.json pnpm-lock.yaml ./
+
+# BuildKit cache mount для pnpm store: повторные сборки не тянут пакеты из сети,
+# при этом install остаётся честным --frozen-lockfile (воспроизводимым).
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
+
+COPY . .
+RUN pnpm build
+
+# --- Stage 2: раздача статики ---
+FROM nginx:alpine
+
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+
+EXPOSE 80

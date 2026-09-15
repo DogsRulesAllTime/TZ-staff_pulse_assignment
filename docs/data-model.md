@@ -6,13 +6,13 @@
 
 ```ts
 interface OrgNode {
-  id: string;          // уникален, например "div-1", "dept-1-2", "team-1-2-3"
+  id: string; // уникален, например "div-1", "dept-1-2", "team-1-2-3"
   name: string;
   parentId: string | null; // null — корень (дивизион)
-  headcount: number;   // > 0
-  budget: number;      // руб., целое
+  headcount: number; // > 0
+  budget: number; // руб., целое
   performance: number; // 0..100
-  updatedAt: string;   // ISO 8601
+  updatedAt: string; // ISO 8601
 }
 ```
 
@@ -44,8 +44,8 @@ interface Forest {
 
 ```ts
 interface Aggregates {
-  totalHeadcount: number;      // узел + все потомки
-  totalBudget: number;         // узел + все потомки
+  totalHeadcount: number; // узел + все потомки
+  totalBudget: number; // узел + все потомки
   weightedPerformance: number; // Σ(perf_i × headcount_i) / Σ headcount_i, включая узел
 }
 ```
@@ -57,6 +57,7 @@ interface Aggregates {
 ### Инкрементальный пересчёт (live)
 
 При патче узла `X`:
+
 1. Обновить значения X.
 2. Подъём по `parentOf` до корней: пересчитать агрегаты только этой ветки.
 3. Все остальные узлы сохраняют кэшированные агрегаты.
@@ -69,11 +70,12 @@ interface Aggregates {
 {
   "id": "team-1-2-3",
   "changes": { "headcount": 12, "performance": 71.5 }, // подмножество полей узла, без id/parentId
-  "updatedAt": "2025-09-14T12:00:00.000Z"
+  "updatedAt": "2025-09-14T12:00:00.000Z",
 }
 ```
 
 Клиент:
+
 1. Валидирует `patchSchema` (zod); невалидный патч игнорируется с `console.warn`.
 2. `applyPatch(forest, patch)` мутирует копию узла в `byId` (структурная замена узла,
    не всего дерева) и обновляет `updatedAt`.

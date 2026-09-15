@@ -1,0 +1,18 @@
+# Исключения из контекста сборки Dockerfile.client / Dockerfile.server:
+# собираем из чистого среза репозитория — нода-модули и артефакты хоста в образ не попадают.
+node_modules
+dist
+dist-ssr
+coverage
+.git
+.husky
+.superpowers
+docs
+logs
+*.log
+.DS_Store
+staff_pulse_assignment.pdf
+
+# Локальные env-файлы не должны попадать в образы (.env.example нужен только людям).
+.env
+.env.*

@@ -1,0 +1,42 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  // Плагины: react (в oxlint правила react-hooks/react-refresh живут в плагине react),
+  // typescript/oxc — база + type-aware (tsgolint), eslint — core-правила.
+  "plugins": ["eslint", "typescript", "oxc", "react", "unicorn", "import", "vitest", "jsx-a11y"],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2024": true
+  },
+  "ignorePatterns": ["dist", "node_modules", "pnpm-lock.yaml", "coverage", ".superpowers"],
+  // Type-aware линтинг через tsgolint (typescript-go / TS7) — без side-by-side пина TS6.
+  "options": {
+    "typeAware": true
+  },
+  "rules": {
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    // styled-components: `interface DefaultTheme extends Theme {}` — каноничный паттерн.
+    "typescript/no-empty-object-type": ["error", { "allowInterfaces": "with-single-extends" }],
+
+    // Эquivаленты react-hooks/recommended (в oxlint — плагин react).
+    "react/exhaustive-deps": "error",
+    "react/set-state-in-effect": "error",
+    "react/refs": "error",
+    "react/only-export-components": ["error", { "allowConstantExport": true }],
+
+    // Type-aware эквиваленты typescript-eslint recommendedTypeChecked.
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/no-unsafe-argument": "error",
+    "typescript/no-unsafe-assignment": "error",
+    "typescript/no-unsafe-call": "error",
+    "typescript/no-unsafe-member-access": "error",
+    "typescript/no-unsafe-return": "error",
+    "typescript/no-unnecessary-type-assertion": "error",
+    "typescript/require-await": "error"
+  }
+}
