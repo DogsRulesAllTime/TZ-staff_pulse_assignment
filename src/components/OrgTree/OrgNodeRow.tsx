@@ -75,7 +75,9 @@ const Headcount = styled.span`
 
 const Children = styled.ul`
   margin: 0;
-  padding: 0;
+  /* Вертикальная иерархия: каждый уровень вложенности получает свой отступ —
+     рекурсия делает его кумулятивным (дивизион 0 → отдел +16 → команда +32). */
+  padding: 0 0 0 ${({ theme }) => theme.spacing.md};
   list-style: none;
   /* Внутренняя часть grid-reveal (Task 9): min-height: 0 позволяет строке
      0fr сжаться до нуля, overflow: hidden — обрезать содержимое при анимации. */

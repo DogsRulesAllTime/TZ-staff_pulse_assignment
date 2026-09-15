@@ -174,3 +174,13 @@ describe('OrgTree expand animation', () => {
     expect(css).toMatch(/prefers-reduced-motion[^{]*\{[^}]*transition:\s*none/);
   });
 });
+
+describe('OrgTree indentation', () => {
+  it('nested children get a per-level left padding (visual hierarchy)', () => {
+    renderFixture();
+
+    // Группа детей отдела — второй уровень: отступ есть.
+    const deptChildren = rowOf('Отдел 1.1').querySelector('[role="group"]')!;
+    expect(cssRulesFor(deptChildren).join('\n')).toMatch(/padding[^;]*16px/);
+  });
+});
