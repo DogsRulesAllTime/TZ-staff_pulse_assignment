@@ -26,12 +26,25 @@ export interface SortState<K extends string = string> {
 export function useTableSort<T, K extends keyof T & string>(
   rows: readonly T[],
   initial: SortState<K>,
-): { sorted: T[]; sort: SortState<K>; toggleSort: (key: K) => void } {
+): {
+  sorted: T[];
+  sort: SortState<K>;
+  toggleSort: (key: K, forceDir?: SortDir) => void;
+} {
   const [sort, setSort] = useState<SortState<K>>(initial);
 
-  const toggleSort = (key: K): void => {
+  /**
+   * forceDir — детерминированная установка направления (для onDoubleClick:
+   * «двойной клик — обратная» = desc независимо от числа промежуточных
+   * click-событий, которое отличается между браузером и тестовым окружением).
+   */
+  const toggleSort = (key: K, forceDir?: SortDir): void => {
     setSort((prev) =>
-      prev.key === key ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' },
+      forceDir
+        ? { key, dir: forceDir }
+        : prev.key === key
+          ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+          : { key, dir: 'asc' },
     );
   };
 

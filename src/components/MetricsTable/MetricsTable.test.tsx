@@ -86,6 +86,17 @@ describe('MetricsTable', () => {
     expect(props.onSortToggle).toHaveBeenCalledWith('totalHeadcount');
   });
 
+  it('double-click forces descending regardless of preceding clicks («двойной клик — обратная»)', async () => {
+    const user = userEvent.setup();
+    const props = renderTable();
+    const header = screen.getByRole('button', { name: 'Всего сотрудников' });
+
+    await user.click(header); // клик: новый столбец → asc
+    await user.dblClick(header); // dblclick: force desc — число click-событий среды не важно
+
+    expect(props.onSortToggle).toHaveBeenLastCalledWith('totalHeadcount', 'desc');
+  });
+
   it('selects a node on row click', async () => {
     const user = userEvent.setup();
     const props = renderTable();

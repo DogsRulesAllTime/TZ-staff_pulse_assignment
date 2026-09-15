@@ -280,7 +280,14 @@ export function MetricsTable({
                   key={key}
                   aria-sort={sorted ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
                 >
-                  <SortButton type="button" onClick={() => onSortToggle(key)}>
+                  <SortButton
+                    type="button"
+                    onClick={() => onSortToggle(key)}
+                    /* «Двойной клик — обратная»: dblclick детерминированно ставит
+                       desc (обратную от asc-клика) — число промежуточных click-
+                       событий не влияет на итоговое направление. */
+                    onDoubleClick={() => onSortToggle(key, 'desc')}
+                  >
                     {label}
                     {sorted && <span aria-hidden="true">{sort.dir === 'asc' ? '↑' : '↓'}</span>}
                   </SortButton>
