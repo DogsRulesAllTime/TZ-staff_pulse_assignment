@@ -53,6 +53,8 @@
 
 | 33 | 2025-09-15 | `b82bacd` | post-release | Сортировка: dblclick теперь детерминированно ставит desc (forceDir в useTableSort) — «клик→dblclick» из asc больше не возвращается в asc; полный live-прогон чек-листа 01–03 (19/19 проверок, playwright) | «Сортировка по любому столбцу, двойной клик — обратная» | — |
 
+| 34 | 2025-09-15 | `4968f46` | infra | Ruling: packageManager запинен на pnpm@9.15.0 — corepack-шим тянул pnpm 12, который пересобрал node_modules и создал паразитный pnpm-workspace.yaml; .corepack/.pnpm-store в .gitignore | — | deferred minor: lint-staged падает на коммите без ts/tsx/md-файлов (нужен tolerant pre-commit) |
+
 ## Чек-лист этапов
 
 - [x] `step/1` FOUNDATION — Tasks 1–4: scaffold ✅ mock API ✅ валидация ✅ кэш stale 5s ✅ дерево ✅ состояния ✅
